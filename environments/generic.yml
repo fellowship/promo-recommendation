@@ -1,0 +1,13 @@
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - numpy
+  - scipy
+  - scikit-learn
+  - pandas
+  - jupyter
+  - black
+  - plotly
+  - matplotlib
+  - python-kaleido
