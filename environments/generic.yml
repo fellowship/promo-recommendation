@@ -10,3 +10,4 @@ dependencies:
   - black
   - plotly
   - matplotlib
+  - python-kaleido
