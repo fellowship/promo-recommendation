@@ -1,5 +1,7 @@
 #%% imports and definitions
 import os
+import random
+import sys
 
 import numpy as np
 import plotly.express as px
@@ -7,15 +9,17 @@ import plotly.express as px
 from routine.data_generation import generate_data
 
 FIG_PATH = "./figs/data"
+DATA_PATH = "./modelinputs/gen_data"
 os.makedirs(FIG_PATH, exist_ok=True)
+os.makedirs(DATA_PATH, exist_ok=True)
 
 #%% generate data
 obs_df, user_df, camp_df = generate_data(
-    num_users=1000,
-    num_campaigns=100,
-    samples_per_campaign=100000,
+    num_users=100,
+    num_campaigns=10,
+    samples_per_campaign=100,
     num_cohort=10,
-    cohort_variances=np.linspace(0.01, 0.1, 10),
+    cohort_variances=np.linspace(0.01, 0.2, 10),
     fh_cohort=True,
     response_sig_a=10,
 )
@@ -42,4 +46,8 @@ fig_camp.write_html(os.path.join(FIG_PATH, "camp.html"))
 fig_resp = px.histogram(
     obs_df, x="response", nbins=500, histnorm="probability", cumulative=True
 )
-fig_resp.write_image(os.path.join(FIG_PATH, "resp.svg"))
+# fig_resp.write_image(os.path.join(FIG_PATH, "resp.svg"))
+
+#%% write all features to dataframe
+obs_df.to_csv(os.path.join(DATA_PATH, "observation.csv"), index=False)
+
