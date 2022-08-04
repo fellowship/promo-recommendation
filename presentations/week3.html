@@ -42,16 +42,16 @@
                 circle/sphere across cohorts.
               </li>
               <li>
-                Whether hidden feature is dependent on cohorts is adjustable
+                Whether hidden feature is dependent on cohorts is adjustable.
               </li>
               <li>Variance of each cohort is independently adjustable.</li>
               <li>
                 All campaign feature vectors are chosen to uniformly cover the
-                unit circle/sphere
+                unit circle/sphere.
               </li>
               <li>
-                The response is a sigmoid of the inner product between user
-                features and campaign features
+                The response is binarized inner product between user and feature
+                vectors.
               </li>
             </ul>
             <pre style="width: 900px; margin-left: 50px"><code data-trim>
@@ -62,7 +62,6 @@
                   num_cohort=10,
                   cohort_variances=np.linspace(0.01, 0.1, 10),
                   fh_cohort=True,
-                  response_sig_a=10,
               )
             </code></pre>
           </div>
@@ -88,25 +87,43 @@
           <embed src="../figs/data/camp.html" width="900px" height="800px" />
         </section>
         <section>
-          <h1 class="slide_heading">Response CDF</h1>
-          <embed src="../figs/data/resp.svg" height="800px" />
-        </section>
-        <section>
-          <h1 class="slide_heading">
-            Question: Is it OK to center the sigmoid on the mean of inner
-            products?
-          </h1>
+          <h1 class="slide_heading">Response counts</h1>
+          <div class="row">
+            <embed
+              src="../figs/data/resp_fh_cohort.html"
+              width="800px"
+              height="800px"
+            />
+            <embed
+              src="../figs/data/resp_fh_ind.html"
+              width="800px"
+              height="800px"
+            />
+          </div>
         </section>
         <section>
           <h1 class="slide_heading">Plan for next week</h1>
           <ul>
             <li>
-              Train XGBoost on data with hidden features dependent or
-              independent of cohorts
+              Generating data with varying parameters:
+              <ul>
+                <li>
+                  Vary standard deviation within cohorts (already implemented).
+                </li>
+                <li>Vary magnitude of hidden features (trivial).</li>
+                <li>Vary number of users per cohort.</li>
+                <li>
+                  Implement response based on cross product of user and campaign
+                  vectors.
+                </li>
+              </ul>
             </li>
             <li>
-              Train Deep model on data with hidden features dependent or
-              independent of cohorts
+              Train models on the generated datasets:
+              <ul>
+                <li>XGBoost</li>
+                <li>Deep and wide bandit</li>
+              </ul>
             </li>
           </ul>
         </section>
