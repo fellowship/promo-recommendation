@@ -113,9 +113,13 @@ def generate_data(
         obs_df[["user_f0", "user_f1", "user_fh"]].values
         * obs_df[["camp_f0", "camp_f1", "camp_fh"]].values
     ).sum(axis=1)
+
     obs_df["response"] = sigmoid(
         iprod,
         a=response_sig_a,
         b=-iprod.mean(),
     )
+
+    obs_df['response'] = np.where(obs_df['response'] < 0.5, 0, 1)
+
     return obs_df, user_df, camp_df

@@ -219,8 +219,8 @@ def evaluate_bandit(test_model, dl, num_of_samples=100):
         ucb_batch_class = np.argmax(ucb_batch, axis=1)
         
         #Compare output batch of class labels to label_batch
-        ts_bandit_output_l.append(ts_batch_class == labels.to_numpy())
-        ucb_bandit_output_l.append(ucb_batch_class == labels.to_numpy())
+        ts_bandit_output_l.append(ts_batch_class == labels.numpy())
+        ucb_bandit_output_l.append(ucb_batch_class == labels.numpy())
         batch_cnt += 1        
 
     ts_bandit_output = np.concatenate(ts_bandit_output_l, axis=0)
