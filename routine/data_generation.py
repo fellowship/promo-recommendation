@@ -60,7 +60,7 @@ def generate_data(
     num_cohort,
     cohort_variances,
     fh_cohort=True,
-    response_sig_a=10,
+    response_sig_a="binary",
 ):
     # get number of samples
     nsample = num_campaigns * samples_per_campaign
@@ -109,13 +109,12 @@ def generate_data(
     obs_df = pd.DataFrame({"user_id": user_ids, "camp_id": camp_ids})
     obs_df = obs_df.merge(user_df.drop(columns="freq"), how="left", on="user_id")
     obs_df = obs_df.merge(camp_df.drop(columns="freq"), how="left", on="camp_id")
-    obs_df["iprod"] = (
+    iprod = (
         obs_df[["user_f0", "user_f1", "user_fh"]].values
         * obs_df[["camp_f0", "camp_f1", "camp_fh"]].values
     ).sum(axis=1)
-    obs_df["response"] = sigmoid(
-        obs_df["iprod"],
-        a=response_sig_a,
-        b=-0.5,
-    )
+    if response_sig_a == "binary":
+        obs_df["response"] = iprod > 0
+    else:
+        obs_df["response"] = sigmoid(iprod, a=response_sig_a)
     return obs_df, user_df, camp_df
