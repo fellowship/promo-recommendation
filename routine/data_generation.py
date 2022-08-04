@@ -116,6 +116,6 @@ def generate_data(
     obs_df["response"] = sigmoid(
         obs_df["iprod"],
         a=response_sig_a,
-        b=-iprod.mean(),
+        b=-0.5,
     )
     return obs_df, user_df, camp_df
