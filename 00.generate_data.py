@@ -73,3 +73,8 @@ fig_resp = px.histogram(
     obs_df, x="response", nbins=500, histnorm="probability", cumulative=True
 )
 fig_resp.write_image(os.path.join(FIG_PATH, "resp_fh_ind.svg"))
+# plot iprod cdf
+fig_resp = px.histogram(
+    obs_df, x="iprod", nbins=500, histnorm="probability", cumulative=True
+)
+fig_resp.write_image(os.path.join(FIG_PATH, "iprod.svg"))
