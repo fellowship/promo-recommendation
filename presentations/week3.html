@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>reveal.js</title>
+
+    <link rel="stylesheet" href="dist/reset.css" />
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="dist/theme/white.css" />
+    <link rel="stylesheet" href="dist/custom.css" />
+    <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h1 class="slide_title">Promo Recommendation Demo</h1>
+          <h1 class="slide_subtitle">Week3 8/1-8/5</h1>
+        </section>
+        <section>
+          <h1 class="slide_heading">Progress</h1>
+          <ul>
+            <li>Setup a organized github repo.</li>
+            <li>Finished initial data generation function.</li>
+            <li>Started exploring different models to train on the data.</li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_heading">Data generation</h1>
+          <div class="row">
+            <ul>
+              <li>Users are uniformly distributed across cohorts.</li>
+              <li>All feature vectors have unit length.</li>
+              <li>Each cohort has a principal feature vector.</li>
+              <li>
+                Principal feature vectors are chosen to uniformly cover the unit
+                circle/sphere across cohorts.
+              </li>
+              <li>
+                Whether hidden feature is dependent on cohorts is adjustable
+              </li>
+              <li>Variance of each cohort is independently adjustable.</li>
+              <li>
+                All campaign feature vectors are chosen to uniformly cover the
+                unit circle/sphere
+              </li>
+              <li>
+                The response is a sigmoid of the inner product between user
+                features and campaign features
+              </li>
+            </ul>
+            <pre style="width: 900px; margin-left: 50px"><code data-trim>
+              obs_df, user_df, camp_df = generate_data(
+                  num_users=1000,
+                  num_campaigns=100,
+                  samples_per_campaign=100000,
+                  num_cohort=10,
+                  cohort_variances=np.linspace(0.01, 0.1, 10),
+                  fh_cohort=True,
+                  response_sig_a=10,
+              )
+            </code></pre>
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">User features</h1>
+          <div class="row">
+            <embed
+              src="../figs/data/user_fh_cohort.html"
+              width="800px"
+              height="800px"
+            />
+            <embed
+              src="../figs/data/user_fh_ind.html"
+              width="800px"
+              height="800px"
+              style="margin-left: 50px"
+            />
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">Campaign features</h1>
+          <embed src="../figs/data/camp.html" width="900px" height="800px" />
+        </section>
+        <section>
+          <h1 class="slide_heading">Response CDF</h1>
+          <embed src="../figs/data/resp.svg" height="800px" />
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Question: Is it OK to center the sigmoid on the mean of inner
+            products?
+          </h1>
+        </section>
+        <section>
+          <h1 class="slide_heading">Plan for next week</h1>
+          <ul>
+            <li>
+              Train XGBoost on data with hidden features dependent or
+              independent of cohorts
+            </li>
+            <li>
+              Train Deep model on data with hidden features dependent or
+              independent of cohorts
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_title">Thank you!</h1>
+        </section>
+      </div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script src="plugin/math/math.js"></script>
+    <script src="plugin/spotlight/spotlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        width: 1920,
+        height: 1080,
+        slideNumber: "c/t",
+        autoPlayMedia: true,
+
+        spotlight: {
+          size: 120,
+          presentingCursor: "crosshair",
+          initialPresentationMode: false,
+        },
+        keyboard: {
+          // enter/leave spotlight presentation mode by pressing key 'c'
+          67: function () {
+            RevealSpotlight.togglePresentationMode();
+          },
+        },
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealNotes,
+          RevealMath,
+          RevealSpotlight,
+        ],
+      });
+    </script>
+  </body>
+</html>
