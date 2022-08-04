@@ -109,12 +109,12 @@ def generate_data(
     obs_df = pd.DataFrame({"user_id": user_ids, "camp_id": camp_ids})
     obs_df = obs_df.merge(user_df.drop(columns="freq"), how="left", on="user_id")
     obs_df = obs_df.merge(camp_df.drop(columns="freq"), how="left", on="camp_id")
-    iprod = (
+    obs_df["iprod"] = (
         obs_df[["user_f0", "user_f1", "user_fh"]].values
         * obs_df[["camp_f0", "camp_f1", "camp_fh"]].values
     ).sum(axis=1)
     obs_df["response"] = sigmoid(
-        iprod,
+        obs_df["iprod"],
         a=response_sig_a,
         b=-iprod.mean(),
     )
