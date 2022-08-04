@@ -33,6 +33,11 @@ fig_user.update_layout(
     legend={"itemsizing": "constant"}, title="Hidden features dependent on cohorts"
 )
 fig_user.write_html(os.path.join(FIG_PATH, "user_fh_cohort.html"))
+# plot response cdf
+fig_resp = px.histogram(
+    obs_df, x="response", nbins=500, histnorm="probability", cumulative=True
+)
+fig_resp.write_image(os.path.join(FIG_PATH, "resp_fh_cohort.svg"))
 
 #%% generate data with hidden feature independnt of cohort
 # generate data
@@ -67,4 +72,4 @@ fig_camp.write_html(os.path.join(FIG_PATH, "camp.html"))
 fig_resp = px.histogram(
     obs_df, x="response", nbins=500, histnorm="probability", cumulative=True
 )
-fig_resp.write_image(os.path.join(FIG_PATH, "resp.svg"))
+fig_resp.write_image(os.path.join(FIG_PATH, "resp_fh_ind.svg"))
