@@ -76,7 +76,7 @@ def generate_data(
     num_cohort,
     cohort_variances,
     fh_cohort=True,
-    response_sig_a="binary",
+    response_sig_a=5,
 ):
     # get number of samples
     nsample = num_campaigns * samples_per_campaign
@@ -129,8 +129,8 @@ def generate_data(
         obs_df[["user_f0", "user_f1", "user_fh"]].values
         * obs_df[["camp_f0", "camp_f1", "camp_fh"]].values
     ).sum(axis=1)
-    if response_sig_a == "binary":
+    if response_sig_a is None:
         obs_df["response"] = iprod > 0
     else:
-        obs_df["response"] = sigmoid(iprod, a=response_sig_a)
+        obs_df["response"] = np.random.binomial(n=1, p=sigmoid(iprod, a=response_sig_a))
     return obs_df, user_df, camp_df
