@@ -56,9 +56,9 @@ def sample_cohort(cohort, variances, n_features):
     return smps
 
 
-def get_sample_freq(n_samples, nunique):
+def get_sample_freq(n_samples, nunique, min_count=1):
     freq = np.random.random(nunique)
-    freq = np.around(freq / freq.sum() * n_samples).astype(int).clip(1, None)
+    freq = np.around(freq / freq.sum() * n_samples).astype(int).clip(min_count, None)
     diff = n_samples - freq.sum()
     if diff != 0:
         freq = np.sort(freq)
@@ -77,18 +77,21 @@ def generate_data(
     cohort_variances,
     fh_cohort=True,
     response_sig_a=5,
+    even_cohort=True,
+    min_user_per_cohort=10,
 ):
     # get number of samples
     nsample = num_campaigns * samples_per_campaign
     # assign users to cohorts uniformly with random frequency
     uids = np.arange(num_users)
+    if even_cohort:
+        cohort_freq = [len(c) for c in np.array_split(uids, num_cohort)]
+    else:
+        cohort_freq = get_sample_freq(num_users, num_cohort, min_user_per_cohort)
     user_df = pd.DataFrame(
         {
             "user_id": uids,
-            "cohort": np.repeat(
-                np.arange(num_cohort),
-                [len(c) for c in np.array_split(uids, num_cohort)],
-            ),
+            "cohort": np.repeat(np.arange(num_cohort), cohort_freq),
             "freq": get_sample_freq(nsample, num_users),
         }
     )

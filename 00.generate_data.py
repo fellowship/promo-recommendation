@@ -23,6 +23,7 @@ obs_df, user_df, camp_df = generate_data(
     num_cohort=10,
     cohort_variances=np.linspace(0.01, 0.1, 10),
     fh_cohort=True,
+    even_cohort=False,
     response_sig_a=10,
 )
 # plot user features
