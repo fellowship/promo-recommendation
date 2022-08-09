@@ -11,3 +11,5 @@ dependencies:
   - plotly
   - matplotlib
   - python-kaleido
+  - py-xgboost
+  - tqdm
