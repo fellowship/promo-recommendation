@@ -10,8 +10,14 @@ from routine.data_generation import generate_data
 
 FIG_PATH = "./figs/data"
 DATA_PATH = "./modelinputs/gen_data"
+PARAM_FONT_SZ = {"font_size": 16, "title_font_size": 24, "legend_title_font_size": 24}
 os.makedirs(FIG_PATH, exist_ok=True)
 os.makedirs(DATA_PATH, exist_ok=True)
+
+
+def agg_freq(df):
+    return (df["response"] == 1).sum() / len(df)
+
 
 #%% generate data
 obs_df, user_df, camp_df = generate_data(
@@ -21,10 +27,10 @@ obs_df, user_df, camp_df = generate_data(
     num_cohort=10,
     cohort_variances=np.linspace(0.01, 0.2, 10),
     fh_cohort=True,
+    even_cohort=False,
     response_sig_a=10,
 )
-
-#%% plot user features
+# plot user features
 fig_user = px.scatter_3d(
     user_df.astype({"cohort": str}),
     x="user_f0",
@@ -32,22 +38,27 @@ fig_user = px.scatter_3d(
     z="user_fh",
     color="cohort",
 )
-fig_user.update_traces(marker_size=2)
-fig_user.update_layout(legend={"itemsizing": "constant"})
-fig_user.write_html(os.path.join(FIG_PATH, "user.html"))
-
-#%% plot campaign features
-fig_camp = px.scatter_3d(camp_df, x="camp_f0", y="camp_f1", z="camp_fh")
-fig_camp.update_traces(marker_size=2)
-fig_camp.update_layout(legend={"itemsizing": "constant"})
-fig_camp.write_html(os.path.join(FIG_PATH, "camp.html"))
-
-#%% plot response cdf
-fig_resp = px.histogram(
-    obs_df, x="response", nbins=500, histnorm="probability", cumulative=True
+fig_user.update_traces(marker_size=3)
+fig_user.update_layout(
+    legend={"itemsizing": "constant"},
+    title="Hidden features dependent on cohorts",
+    **PARAM_FONT_SZ,
 )
-# fig_resp.write_image(os.path.join(FIG_PATH, "resp.svg"))
+fig_user.write_html(os.path.join(FIG_PATH, "user.html"))
+# plot campaign features
+fig_camp = px.scatter_3d(camp_df, x="camp_f0", y="camp_f1", z="camp_fh")
+fig_camp.update_traces(marker_size=3)
+fig_camp.update_layout(legend={"itemsizing": "constant"}, **PARAM_FONT_SZ)
+fig_camp.write_html(os.path.join(FIG_PATH, "camp.html"))
+# plot response cdf
+resp_df = (
+    obs_df.groupby(["camp_id", "cohort"]).apply(agg_freq).rename("freq").reset_index()
+)
 
 #%% write all features to dataframe
-obs_df.to_csv(os.path.join(DATA_PATH, "observation.csv"), index=False)
+fig_resp = px.bar(resp_df, x="cohort", y="freq", facet_col="camp_id", facet_col_wrap=10)
+fig_resp.add_hline(0.5, line_dash="dot", line_color="gray")
+fig_resp.update_layout(title="Hidden features dependent on cohorts", **PARAM_FONT_SZ)
+fig_resp.write_html(os.path.join(FIG_PATH, "resp.html"))
 
+obs_df.to_csv(os.path.join(DATA_PATH, "observation.csv"), index=False)

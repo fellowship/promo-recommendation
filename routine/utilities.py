@@ -143,3 +143,8 @@ def generate_feature_columns(hidden_include=False):
     feature_column_dict["crossed"] = user_campaign_cross_col
 
     return feature_column_dict, feature_column_input_dict
+
+
+def norm(x):
+    xmin, xmax = np.nanmin(x), np.nanmax(x)
+    return (x - xmin) / (xmax - xmin)
