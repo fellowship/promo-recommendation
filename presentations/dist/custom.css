@@ -1,0 +1,44 @@
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+iframe.plot {
+  padding: 0;
+  margin: 0;
+  transform: scale(var(--tscale, 1));
+  transform-origin: center;
+  overflow: hidden;
+}
+h1.slide_title {
+  font-size: 2em;
+}
+h1.slide_subtitle {
+  font-size: 1.5em;
+  color: gray;
+}
+h1.slide_author {
+  font-size: 1.3em;
+  text-align: right;
+  color: darkgray;
+}
+h1.slide_heading {
+  font-size: 1.3em;
+  text-transform: capitalize;
+}
+img {
+  vertical-align: middle;
+}
+.rfooter {
+  position: absolute;
+  bottom: 1em;
+  right: 1em;
+  font-size: 0.5em;
+}
+.lfooter {
+  position: absolute;
+  bottom: 1em;
+  left: 1em;
+  font-size: 0.5em;
+}
