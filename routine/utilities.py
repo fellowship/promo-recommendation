@@ -7,3 +7,8 @@ def sigmoid(x, a=1, b=0):
 
 def unit_norm(x):
     return x / np.sqrt(np.sum(x**2, axis=1))[:, np.newaxis]
+
+
+def norm(x):
+    xmin, xmax = np.nanmin(x), np.nanmax(x)
+    return (x - xmin) / (xmax - xmin)
