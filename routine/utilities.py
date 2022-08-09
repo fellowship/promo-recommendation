@@ -28,13 +28,11 @@ def unit_norm(x):
     return x / np.sqrt(np.sum(x ** 2, axis=1))[:, np.newaxis]
 
 
-def generate_CSV(inp_file_path, train_path, val_path, test_path, verbose=False, save_space=True):
+def generate_CSV(df, train_path, val_path, test_path, verbose=False, save_space=True):
     """
     This function accepts input file path & output paths to export
     training, validation and test CSVs.
     """
-
-    df = pd.read_csv(inp_file_path, header=[0])
 
     # Set train & val set splits
     train_split_index = int(0.6 * len(df))

@@ -2,21 +2,30 @@ import gc
 import importlib
 import os
 from routine.utilities import generate_CSV, df_to_dataloader, generate_feature_columns
+from routine.data_generation import generate_data
 from routine.models import build_wide_model, build_deep_model, build_wide_and_deep_model, \
     build_bayesian_model, evaluate_bandit
 from os.path import exists
 from pprint import pprint
 import tensorflow as tf
 import sys
+import numpy as np
 
-DATA = './modelinputs/gen_data/observation.csv'
-INPUT_DATA_PATH = './modelinputs/input_data'
+obs_df, user_df, camp_df = generate_data(
+    num_users=100,
+    num_campaigns=10,
+    samples_per_campaign=100,
+    num_cohort=10,
+    cohort_variances=np.linspace(0.01, 0.2, 10),
+    fh_cohort=True,
+    response_sig_a=10,
+    even_cohort=True,
+    cross_response=True
+)
 
-if not exists(DATA):
-    raise RuntimeError('observation.csv file not yet created...')
-else:
-    if not os.path.isdir(INPUT_DATA_PATH):
-        os.makedirs(INPUT_DATA_PATH)
+INPUT_DATA_PATH = './deep_and_wide/NN_Inputs/input_data'
+if not os.path.isdir(INPUT_DATA_PATH):
+    os.makedirs(INPUT_DATA_PATH)
 
 #%% Creating the training, validation and testing data for the model
 train_path = INPUT_DATA_PATH + "/train.csv"
@@ -24,7 +33,7 @@ val_path = INPUT_DATA_PATH + "/val.csv"
 test_path = INPUT_DATA_PATH + "/test.csv"
 re_create = True
 if re_create:
-    generate_CSV(DATA,
+    generate_CSV(obs_df,
                  train_path,
                  val_path,
                  test_path,
@@ -67,7 +76,7 @@ inputs = {**feature_column_input_dict["numeric"], **feature_column_input_dict["e
 
 
 #%% Models
-models_dir = './model_checkpoint'
+models_dir = './deep_and_wide/NN_checkpoint'
 if not os.path.isdir(models_dir):
     os.makedirs(models_dir)
 # create the folders to save the checkpoints

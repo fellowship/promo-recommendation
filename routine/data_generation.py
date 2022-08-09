@@ -79,6 +79,7 @@ def generate_data(
     response_sig_a=5,
     even_cohort=True,
     min_user_per_cohort=10,
+    cross_response=False
 ):
     # get number of samples
     nsample = num_campaigns * samples_per_campaign
@@ -128,14 +129,22 @@ def generate_data(
     obs_df = pd.DataFrame({"user_id": user_ids, "camp_id": camp_ids})
     obs_df = obs_df.merge(user_df.drop(columns="freq"), how="left", on="user_id")
     obs_df = obs_df.merge(camp_df.drop(columns="freq"), how="left", on="camp_id")
-    iprod = (
-        obs_df[["user_f0", "user_f1", "user_fh"]].values
-        * obs_df[["camp_f0", "camp_f1", "camp_fh"]].values
-    ).sum(axis=1)
 
-    if response_sig_a is None:
-        obs_df["response"] = iprod > 0
+    if cross_response:
+        cross_prod = [np.outer(np.array([x, y, z]), np.array([a, b, c])) for x, y, z, a, b, c in
+                      zip(obs_df['user_f0'], obs_df['user_f1'],
+                      obs_df['user_fh'], obs_df['camp_f0'],
+                      obs_df['camp_f1'], obs_df['camp_fh'])]
+        iprod = [np.sum(np.multiply(np.random.random((3, 3)), cross_prod[i])) for i in range(len(cross_prod))]
+        obs_df["response"] = np.random.binomial(n=1, p=sigmoid(np.asarray(iprod), a=response_sig_a))
     else:
-        obs_df["response"] = np.random.binomial(n=1, p=sigmoid(iprod, a=response_sig_a))
+        iprod = (
+                obs_df[["user_f0", "user_f1", "user_fh"]].values
+                * obs_df[["camp_f0", "camp_f1", "camp_fh"]].values
+        ).sum(axis=1)
+        if response_sig_a is None:
+            obs_df["response"] = iprod > 0
+        else:
+            obs_df["response"] = np.random.binomial(n=1, p=sigmoid(iprod, a=response_sig_a))
 
     return obs_df, user_df, camp_df

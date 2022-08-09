@@ -6,13 +6,9 @@ import sys
 import numpy as np
 import plotly.express as px
 
-from routine.data_generation import generate_data
-
 FIG_PATH = "./figs/data"
-DATA_PATH = "./modelinputs/gen_data"
 PARAM_FONT_SZ = {"font_size": 16, "title_font_size": 24, "legend_title_font_size": 24}
 os.makedirs(FIG_PATH, exist_ok=True)
-os.makedirs(DATA_PATH, exist_ok=True)
 
 
 def agg_freq(df):
@@ -20,6 +16,7 @@ def agg_freq(df):
 
 
 #%% generate data
+from routine.data_generation import generate_data
 obs_df, user_df, camp_df = generate_data(
     num_users=100,
     num_campaigns=10,
@@ -27,8 +24,9 @@ obs_df, user_df, camp_df = generate_data(
     num_cohort=10,
     cohort_variances=np.linspace(0.01, 0.2, 10),
     fh_cohort=True,
-    even_cohort=False,
     response_sig_a=10,
+    even_cohort=True,
+    cross_response=True
 )
 # plot user features
 fig_user = px.scatter_3d(
@@ -61,4 +59,3 @@ fig_resp.add_hline(0.5, line_dash="dot", line_color="gray")
 fig_resp.update_layout(title="Hidden features dependent on cohorts", **PARAM_FONT_SZ)
 fig_resp.write_html(os.path.join(FIG_PATH, "resp.html"))
 
-obs_df.to_csv(os.path.join(DATA_PATH, "observation.csv"), index=False)
