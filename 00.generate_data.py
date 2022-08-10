@@ -26,7 +26,8 @@ obs_df, user_df, camp_df = generate_data(
     fh_cohort=True,
     response_sig_a=10,
     even_cohort=True,
-    cross_response=True
+    cross_response=True,
+    magnify_hf=1
 )
 # plot user features
 fig_user = px.scatter_3d(
@@ -64,4 +65,4 @@ fig_resp.write_html(os.path.join(FIG_PATH, "resp.html"))
 # from pathlib import Path
 # path_to_download_folder = str(os.path.join(Path.home(), "Downloads"))
 # obs_df.to_csv(os.path.join(path_to_download_folder, "observation_odd.csv"), index=False)
-obs_df.to_csv('.',  "observation_odd.csv")
+obs_df.to_csv("observation.csv")

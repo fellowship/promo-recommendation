@@ -80,7 +80,8 @@ def generate_data(
     response_sig_a=5,
     even_cohort=True,
     min_user_per_cohort=10,
-    cross_response=False
+    cross_response=False,
+    magnify_hf=1
 ):
     # get number of samples
     nsample = num_campaigns * samples_per_campaign
@@ -101,7 +102,7 @@ def generate_data(
     if fh_cohort:
         feats = sample_cohort(user_df["cohort"], cohort_variances, 3)
         user_df = user_df.assign(
-            **{"user_f0": feats[:, 0], "user_f1": feats[:, 1], "user_fh": feats[:, 2]}
+            **{"user_f0": feats[:, 0], "user_f1": feats[:, 1], "user_fh": magnify_hf * feats[:, 2]}
         )
     else:
         feats = sample_cohort(user_df["cohort"], cohort_variances, 2)
@@ -109,7 +110,7 @@ def generate_data(
         np.random.shuffle(fh)
         feats = np.concatenate([feats, fh], axis=1)
         user_df = user_df.assign(
-            **{"user_f0": feats[:, 0], "user_f1": feats[:, 1], "user_fh": feats[:, 2]}
+            **{"user_f0": feats[:, 0], "user_f1": feats[:, 1], "user_fh": magnify_hf * feats[:, 2]}
         )
     # generate campaigns with random frequency and uniform features
     camp_df = pd.DataFrame(
