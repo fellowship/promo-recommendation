@@ -27,9 +27,10 @@ if data_regenerate:
         cross_response=True
     )
 else:
-    from pathlib import Path
-    path_to_download_folder = str(os.path.join(Path.home(), "Downloads"))
-    obs_df = pd.read_csv(path_to_download_folder + '/observation_odd.csv')
+    # from pathlib import Path
+    # path_to_download_folder = str(os.path.join(Path.home(), "Downloads"))
+    # obs_df = pd.read_csv(path_to_download_folder + '/observation_odd.csv')
+    obs_df = pd.read_csv('./observation_odd.csv')
 
 
 INPUT_DATA_PATH = './deep_and_wide/NN_Inputs/input_data'

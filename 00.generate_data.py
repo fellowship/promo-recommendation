@@ -60,7 +60,8 @@ fig_resp.add_hline(0.5, line_dash="dot", line_color="gray")
 fig_resp.update_layout(title="Hidden features dependent on cohorts", **PARAM_FONT_SZ)
 fig_resp.write_html(os.path.join(FIG_PATH, "resp.html"))
 
-# Save the data frame
-from pathlib import Path
-path_to_download_folder = str(os.path.join(Path.home(), "Downloads"))
-obs_df.to_csv(os.path.join(path_to_download_folder, "observation_odd.csv"), index=False)
+# # Save the data frame
+# from pathlib import Path
+# path_to_download_folder = str(os.path.join(Path.home(), "Downloads"))
+# obs_df.to_csv(os.path.join(path_to_download_folder, "observation_odd.csv"), index=False)
+obs_df.to_csv('.',  "observation_odd.csv")
