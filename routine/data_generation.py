@@ -59,12 +59,13 @@ def sample_cohort(cohort, variances, n_features):
 def get_sample_freq(n_samples, nunique, min_count=1):
     freq = np.random.random(nunique)
     freq = np.around(freq / freq.sum() * n_samples).astype(int).clip(min_count, None)
-    diff = n_samples - freq.sum()
-    if diff != 0:
+    while True:
+        diff = n_samples - freq.sum()
+        if diff == 0:
+            break
         freq = np.sort(freq)
         n_modify = np.abs(diff)
-        freq[-n_modify:] = freq[-n_modify:] + np.sign(diff)
-    assert freq.sum() == n_samples
+        freq[-n_modify:] = (freq[-n_modify:] + np.sign(diff)).clip(min_count, None)
     np.random.shuffle(freq)
     return freq
 
@@ -142,6 +143,7 @@ def generate_data(
                 obs_df[["user_f0", "user_f1", "user_fh"]].values
                 * obs_df[["camp_f0", "camp_f1", "camp_fh"]].values
         ).sum(axis=1)
+
         if response_sig_a is None:
             obs_df["response"] = iprod > 0
         else:

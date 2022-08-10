@@ -10,18 +10,27 @@ from pprint import pprint
 import tensorflow as tf
 import sys
 import numpy as np
+import pandas as pd
 
-obs_df, user_df, camp_df = generate_data(
-    num_users=100,
-    num_campaigns=10,
-    samples_per_campaign=100,
-    num_cohort=10,
-    cohort_variances=np.linspace(0.01, 0.2, 10),
-    fh_cohort=True,
-    response_sig_a=10,
-    even_cohort=True,
-    cross_response=True
-)
+
+data_regenerate = False
+if data_regenerate:
+    obs_df, user_df, camp_df = generate_data(
+        num_users=100,
+        num_campaigns=10,
+        samples_per_campaign=100,
+        num_cohort=10,
+        cohort_variances=np.linspace(0.05, 0.6, 10),
+        fh_cohort=True,
+        response_sig_a=10,
+        even_cohort=True,
+        cross_response=True
+    )
+else:
+    from pathlib import Path
+    path_to_download_folder = str(os.path.join(Path.home(), "Downloads"))
+    obs_df = pd.read_csv(path_to_download_folder + '/observation_odd.csv')
+
 
 INPUT_DATA_PATH = './deep_and_wide/NN_Inputs/input_data'
 if not os.path.isdir(INPUT_DATA_PATH):

@@ -19,7 +19,7 @@ PARAM_DATA = {
     "num_campaigns": 100,
     "samples_per_campaign": 10000,
     "num_cohort": 10,
-    "even_cohort": True,
+    "even_cohort": False,
     "response_sig_a": 10,
     "cross_response": False
 }
@@ -50,9 +50,11 @@ for cvar, fh, itrain in tqdm(
         fh_cohort = False
     if fh == "none":
         feat_cols = ["user_f0", "user_f1", "user_fh", "camp_f0", "camp_f1"]
+
     data, user_df, camp_df = generate_data(
         cohort_variances=cvar, fh_cohort=fh_cohort, **PARAM_DATA
     )
+
     model = XGBClassifier(n_estimators=PARAM_NROUND, **PARAM_XGB)
     score = cross_validate(model, data[feat_cols], data["response"])["test_score"]
     score = pd.DataFrame(
@@ -79,4 +81,4 @@ fig = px.violin(
     points=False,
 )
 fig.update_layout(legend_title="hidden feature")
-fig.write_html(os.path.join(FIG_PATH, "scores.html"))
+fig.write_html(os.path.join(FIG_PATH, "scores_uneven.html"))
