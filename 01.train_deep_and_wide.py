@@ -16,20 +16,18 @@ import pandas as pd
 data_regenerate = False
 if data_regenerate:
     obs_df, user_df, camp_df = generate_data(
-        num_users=100,
-        num_campaigns=10,
-        samples_per_campaign=100,
+        num_users=1000,
+        num_campaigns=100,
+        samples_per_campaign=10000,
         num_cohort=10,
         cohort_variances=np.linspace(0.05, 0.6, 10),
         fh_cohort=True,
         response_sig_a=10,
         even_cohort=True,
-        cross_response=True
+        cross_response=False,
+        magnify_hf=1
     )
 else:
-    # from pathlib import Path
-    # path_to_download_folder = str(os.path.join(Path.home(), "Downloads"))
-    # obs_df = pd.read_csv(path_to_download_folder + '/observation_odd.csv')
     obs_df = pd.read_csv('./observation_odd.csv')
 
 

@@ -77,7 +77,7 @@ def generate_data(
     num_cohort,
     cohort_variances,
     fh_cohort=True,
-    response_sig_a=5,
+    response_sig_a=10,
     even_cohort=True,
     min_user_per_cohort=10,
     cross_response=False,

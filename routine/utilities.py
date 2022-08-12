@@ -119,9 +119,11 @@ def generate_feature_columns(hidden_include=False):
     embedding_feature_columns = []
     embedding_feature_column_inputs = {}
 
-    user_id = tf.feature_column.categorical_column_with_hash_bucket("user_id", hash_bucket_size=100, dtype=tf.int64)
-    campaign_id = tf.feature_column.categorical_column_with_hash_bucket("camp_id", hash_bucket_size=10,
+    user_id = tf.feature_column.categorical_column_with_hash_bucket("user_id", hash_bucket_size=1000, dtype=tf.int64)
+    campaign_id = tf.feature_column.categorical_column_with_hash_bucket("camp_id", hash_bucket_size=100,
                                                                         dtype=tf.int64)
+    cohort = tf.feature_column.categorical_column_with_hash_bucket("cohort", hash_bucket_size=10,
+                                                                        dtype=tf.int64)                  
 
     user_id_embedding = tf.feature_column.embedding_column(user_id, dimension=16)
     embedding_feature_columns.append(user_id_embedding)
@@ -131,14 +133,19 @@ def generate_feature_columns(hidden_include=False):
     embedding_feature_columns.append(campaign_id_embedding)
     embedding_feature_column_inputs["camp_id"] = tf.keras.Input(shape=(), name="camp_id", dtype=tf.int64)
 
+    cohort_embedding = tf.feature_column.embedding_column(cohort, dimension=7)
+    embedding_feature_columns.append(cohort_embedding)
+    embedding_feature_column_inputs["cohort"] = tf.keras.Input(shape=(), name="cohort", dtype=tf.int64)
+
     feature_column_dict["embedding"] = embedding_feature_columns
     feature_column_input_dict["embedding"] = embedding_feature_column_inputs
 
     # Crossed Columns
-    user_campaign_cross = tf.feature_column.crossed_column(["user_id", "camp_id"], hash_bucket_size=1000)
+    user_campaign_cross = tf.feature_column.crossed_column(["user_id", "camp_id"], hash_bucket_size=100000)
     user_campaign_cross_col = [tf.feature_column.indicator_column(user_campaign_cross)]
 
     feature_column_dict["crossed"] = user_campaign_cross_col
+
 
     return feature_column_dict, feature_column_input_dict
 

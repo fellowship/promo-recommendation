@@ -23,7 +23,7 @@ PARAM_DATA = {
     "even_cohort": True,
     "response_sig_a": 10,
     "cross_response": False,
-    "magnify_fh": 1
+    "magnify_hf": 1
 }
 PARAM_XGB = {
     "max_depth": 5,
@@ -46,19 +46,22 @@ result_ls = []
 for cvar, cs, itrain in tqdm(
     list(itt.product(PARAM_VAR, PARAM_COHORT, range(PARAM_NTRAIN)))
 ):
-    if cs == "only_cohort":
-        feat_cols = ["cohort", "camp_f0", "camp_f1"]
-    elif cs == "only_real_features":
-        feat_cols = ["user_f0", "user_f1", "camp_f0", "camp_f1"]
-    elif cs == "cohort_and_real_features":
-        feat_cols = ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1"]
-
     data, user_df, camp_df = generate_data(
         cohort_variances=cvar, **PARAM_DATA
     )
 
+    if cs == "only_cohort":
+        feat_cols = ["cohort", "camp_f0", "camp_f1"]
+        data_modified = pd.get_dummies(data[feat_cols], columns=['cohort'])
+    elif cs == "only_real_features":
+        feat_cols = ["user_f0", "user_f1", "camp_f0", "camp_f1"]
+        data_modified = data[feat_cols]
+    elif cs == "cohort_and_real_features":
+        feat_cols = ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1"]
+        data_modified = pd.get_dummies(data[feat_cols], columns=['cohort'])
+
     model = XGBClassifier(n_estimators=PARAM_NROUND, **PARAM_XGB)
-    score = cross_validate(model, data[feat_cols], data["response"])["test_score"]
+    score = cross_validate(model, data_modified, data["response"])["test_score"]
     score = pd.DataFrame(
         {
             "cohort_variance": cvar,
@@ -74,13 +77,12 @@ result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 
 #%% plotting
 result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
-fig = px.violin(
+fig = px.box(
     result,
     x="cohort_variance",
     y="score",
     color="cs",
-    category_orders={"cs": ["only_cohort", "only_real_features", "cohort_and_real_features"]},
-    points=False,
+    category_orders={"cs": ["only_cohort", "only_real_features", "cohort_and_real_features"]}
 )
 fig.update_layout(legend_title="cohort importance")
 fig.write_html(os.path.join(FIG_PATH, "scores_even_cohort_importance.html"))

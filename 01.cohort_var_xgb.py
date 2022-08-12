@@ -21,6 +21,8 @@ PARAM_DATA = {
     "num_cohort": 10,
     "even_cohort": True,
     "response_sig_a": 10,
+    "cross_response": False,
+    "magnify_hf": 1
 }
 PARAM_XGB = {
     "max_depth": 5,
@@ -69,13 +71,12 @@ result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 
 #%% plotting
 result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
-fig = px.violin(
+fig = px.box(
     result,
     x="cohort_variance",
     y="score",
     color="fh",
     category_orders={"fh": ["none", "cohort", "independent"]},
-    points=False,
 )
 fig.update_layout(legend_title="hidden feature")
-fig.write_html(os.path.join(FIG_PATH, "scores_uneven.html"))
+fig.write_html(os.path.join(FIG_PATH, "scores_even.html"))
