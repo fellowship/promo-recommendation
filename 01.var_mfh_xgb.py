@@ -22,7 +22,7 @@ PARAM_DATA = {
     "fh_cohort": True,
     "even_cohort": True,
     "response_sig_a": 10,
-    "cross_response": False
+    "cross_response": False,
 }
 PARAM_XGB = {
     "max_depth": 5,
@@ -72,7 +72,7 @@ fig = px.box(
     x="cohort_variance",
     y="score",
     color="mfh",
-    category_orders={"mfh": [0.01, 1, 10]}
+    category_orders={"mfh": [0.01, 1, 10]},
 )
 fig.update_layout(legend_title="hidden feature magnitude")
 fig.write_html(os.path.join(FIG_PATH, "scores_even_mfh.html"))
