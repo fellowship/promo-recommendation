@@ -35,8 +35,8 @@ PARAM_NROUND = 30
 PARAM_VAR = np.linspace(0.05, 0.6, 12)
 PARAM_MFH = [0.01, 1, 10]
 PARAM_NTRAIN = 10
-OUT_RESULT_PATH = "./intermediate/cohort_var_xgb"
-FIG_PATH = "./figs/cohort_var_xgb"
+OUT_RESULT_PATH = "./intermediate/var_mfh_xgb"
+FIG_PATH = "./figs/var_mfh_xgb"
 os.makedirs(OUT_RESULT_PATH, exist_ok=True)
 os.makedirs(FIG_PATH, exist_ok=True)
 
