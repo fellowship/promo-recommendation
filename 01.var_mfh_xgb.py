@@ -22,7 +22,7 @@ PARAM_DATA = {
     "fh_cohort": True,
     "even_cohort": True,
     "response_sig_a": 10,
-    "cross_response": False,
+    "cross_weight": None,
 }
 PARAM_XGB = {
     "max_depth": 5,
