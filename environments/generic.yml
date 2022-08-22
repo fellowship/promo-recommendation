@@ -13,3 +13,4 @@ dependencies:
   - python-kaleido
   - py-xgboost
   - tqdm
+  - tensorflow
