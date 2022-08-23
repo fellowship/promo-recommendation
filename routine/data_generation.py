@@ -90,7 +90,6 @@ def generate_data(
     min_user_per_cohort=10,
     cross_weight=None,
     magnify_hf=1,
-    var_fac_hf=1,
     kmeans=False
 ):
     # get number of samples
@@ -112,9 +111,11 @@ def generate_data(
     if fh_cohort:
         feats, means = sample_cohort(user_df["cohort"], cohort_variances, 3, var_fac_hf)
         user_df = user_df.assign(
-            **{"user_f0": feats[:, 0],
-               "user_f1": feats[:, 1],
-               "user_fh": magnify_hf * feats[:, 2]}
+            **{
+                "user_f0": feats[:, 0],
+                "user_f1": feats[:, 1],
+                "user_fh": magnify_hf * feats[:, 2],
+            }
         )
     else:
         feats, _ = sample_cohort(user_df["cohort"], cohort_variances, 2)
@@ -122,7 +123,11 @@ def generate_data(
         np.random.shuffle(fh)
         feats = np.concatenate([feats, fh], axis=1)
         user_df = user_df.assign(
-            **{"user_f0": feats[:, 0], "user_f1": feats[:, 1], "user_fh": magnify_hf * feats[:, 2]}
+            **{
+                "user_f0": feats[:, 0],
+                "user_f1": feats[:, 1],
+                "user_fh": magnify_hf * feats[:, 2],
+            }
         )
 
     if kmeans:
@@ -153,8 +158,8 @@ def generate_data(
         iprod = (cross_weight[np.newaxis, :, :] * cross_prod).sum(axis=(1, 2))
     else:
         iprod = (
-                obs_df[["user_f0", "user_f1", "user_fh"]].values
-                * obs_df[["camp_f0", "camp_f1", "camp_fh"]].values
+            obs_df[["user_f0", "user_f1", "user_fh"]].values
+            * obs_df[["camp_f0", "camp_f1", "camp_fh"]].values
         ).sum(axis=1)
     if response_sig_a is None:
         obs_df["response"] = iprod > 0

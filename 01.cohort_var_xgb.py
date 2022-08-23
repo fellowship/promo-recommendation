@@ -21,7 +21,7 @@ PARAM_DATA = {
     "num_cohort": 10,
     "even_cohort": True,
     "response_sig_a": 10,
-    "cross_response": False,
+    "cross_weight": None,
     "magnify_hf": 1
 }
 PARAM_XGB = {

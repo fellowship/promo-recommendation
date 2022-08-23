@@ -22,9 +22,7 @@ PARAM_DATA = {
     "fh_cohort": True,
     "even_cohort": True,
     "response_sig_a": 10,
-    "cross_response": False,
-    "magnify_hf": 1,
-    "var_fac_hf": 1
+    "cross_weight": None,
 }
 PARAM_XGB = {
     "max_depth": 5,
@@ -35,38 +33,29 @@ PARAM_XGB = {
 }
 PARAM_NROUND = 30
 PARAM_VAR = np.linspace(0.05, 0.6, 12)
-PARAM_COHORT = ["cohort id", "numerical features", "cohort id + numerical features"]
+PARAM_MFH = [0.01, 1, 10]
 PARAM_NTRAIN = 10
-OUT_RESULT_PATH = "./intermediate/cohort_var_xgb"
-FIG_PATH = "./figs/cohort_var_xgb"
+OUT_RESULT_PATH = "./intermediate/var_mfh_xgb"
+FIG_PATH = "./figs/var_mfh_xgb"
 os.makedirs(OUT_RESULT_PATH, exist_ok=True)
 os.makedirs(FIG_PATH, exist_ok=True)
 
 #%% training
 result_ls = []
-for cvar, cs, itrain in tqdm(
-    list(itt.product(PARAM_VAR, PARAM_COHORT, range(PARAM_NTRAIN)))
+for cvar, mfh, itrain in tqdm(
+    list(itt.product(PARAM_VAR, PARAM_MFH, range(PARAM_NTRAIN)))
 ):
+    feat_cols = ["user_f0", "user_f1", "camp_f0", "camp_f1"]
     data, user_df, camp_df = generate_data(
-        cohort_variances=cvar, **PARAM_DATA
+        cohort_variances=cvar, magnify_hf=mfh, **PARAM_DATA
     )
 
-    if cs == "cohort id":
-        feat_cols = ["cohort", "camp_f0", "camp_f1"]
-        data_modified = pd.get_dummies(data[feat_cols], columns=['cohort'])
-    elif cs == "numerical features":
-        feat_cols = ["user_f0", "user_f1", "camp_f0", "camp_f1"]
-        data_modified = data[feat_cols]
-    elif cs == "cohort id + numerical features":
-        feat_cols = ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1"]
-        data_modified = pd.get_dummies(data[feat_cols], columns=['cohort'])
-
     model = XGBClassifier(n_estimators=PARAM_NROUND, **PARAM_XGB)
-    score = cross_validate(model, data_modified, data["response"])["test_score"]
+    score = cross_validate(model, data[feat_cols], data["response"])["test_score"]
     score = pd.DataFrame(
         {
             "cohort_variance": cvar,
-            "cs": cs,
+            "mfh": mfh,
             "itrain": itrain,
             "cv": np.arange(len(score)),
             "score": score,
@@ -82,18 +71,8 @@ fig = px.box(
     result,
     x="cohort_variance",
     y="score",
-    color="cs",
-    category_orders={"cs": ["cohort id", "numerical features", "cohort id + numerical features"]}
+    color="mfh",
+    category_orders={"mfh": [0.01, 1, 10]},
 )
-# fig.update_xaxes(title_font={"size": 50})
-# fig.update_yaxes(title_font={"size": 50})
-fig.update_layout(legend_title="Input to the model")
-
-fig.update_layout(
-    font=dict(
-        family="Courier New, monospace",
-        size=15,
-        color="RebeccaPurple"
-    )
-)
-fig.write_html(os.path.join(FIG_PATH, "scores_even_cohort_importance.html"))
+fig.update_layout(legend_title="hidden feature magnitude")
+fig.write_html(os.path.join(FIG_PATH, "scores_even_mfh.html"))
