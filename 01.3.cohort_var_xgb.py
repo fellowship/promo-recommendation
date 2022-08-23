@@ -24,7 +24,7 @@ PARAM_DATA = {
     "response_sig_a": 10,
     "cross_response": False,
     "magnify_hf": 1,
-    "var_fac_hf": 1
+    "var_fac_hf": 10,
 }
 PARAM_XGB = {
     "max_depth": 5,
@@ -85,10 +85,7 @@ fig = px.box(
     color="cs",
     category_orders={"cs": ["cohort id", "numerical features", "cohort id + numerical features"]}
 )
-# fig.update_xaxes(title_font={"size": 50})
-# fig.update_yaxes(title_font={"size": 50})
 fig.update_layout(legend_title="Input to the model")
-
 fig.update_layout(
     font=dict(
         family="Courier New, monospace",
@@ -96,4 +93,4 @@ fig.update_layout(
         color="RebeccaPurple"
     )
 )
-fig.write_html(os.path.join(FIG_PATH, "scores_even_cohort_importance.html"))
+fig.write_html(os.path.join(FIG_PATH, "scores_even_cohort_importance_10.html"))

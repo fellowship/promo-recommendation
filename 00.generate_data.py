@@ -5,6 +5,11 @@ import sys
 
 import numpy as np
 import plotly.express as px
+import scipy.stats
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+import routine.data_generation
 
 FIG_PATH = "./figs/data"
 PARAM_FONT_SZ = {"font_size": 16, "title_font_size": 24, "legend_title_font_size": 24}
@@ -22,12 +27,14 @@ obs_df, user_df, camp_df = generate_data(
     num_campaigns=100,
     samples_per_campaign=10000,
     num_cohort=10,
-    cohort_variances=np.linspace(0.05, 0.6, 10),
+    cohort_variances=0.2,
     fh_cohort=True,
     response_sig_a=10,
     even_cohort=True,
     cross_response=False,
-    magnify_hf=1
+    magnify_hf=1,
+    var_fac_hf=1,
+    kmeans=False
 )
 # plot user features
 fig_user = px.scatter_3d(
