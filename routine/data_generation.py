@@ -90,6 +90,7 @@ def generate_data(
     min_user_per_cohort=10,
     cross_weight=None,
     magnify_hf=1,
+    var_fac_hf=1,
     kmeans=False
 ):
     # get number of samples
@@ -173,11 +174,11 @@ def generate_data(
 
 def Kmeans_cluster(df, n_cohorts):
     # for k in range(n_cohorts):
-    kmeans_model = KMeans(n_clusters=n_cohorts, random_state=1).fit_predict(df.loc[:, ["user_f0", "user_f1", "user_fh"]])
+    kmeans_model = KMeans(n_clusters=n_cohorts, random_state=1).fit_predict(df.loc[:, ["user_f0", "user_f1"]])
     # labels = kmeans_model.labels_
 
     accuracy = np.sum(kmeans_model == df['cohort']) / len(df['cohort'])
-    print("K-means clustering accuracy:", accuracy)
+    # print("K-means clustering accuracy:", accuracy)
 
     # add the cohort predicted column
     df['cohort'] = kmeans_model

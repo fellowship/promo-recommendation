@@ -27,11 +27,11 @@ obs_df, user_df, camp_df = generate_data(
     num_campaigns=100,
     samples_per_campaign=10000,
     num_cohort=10,
-    cohort_variances=0.2,
+    cohort_variances=0.6,
     fh_cohort=True,
     response_sig_a=10,
     even_cohort=True,
-    cross_response=False,
+    cross_weight=None,
     magnify_hf=1,
     var_fac_hf=1,
     kmeans=False
@@ -69,4 +69,21 @@ fig_resp.update_layout(title="Hidden features dependent on cohorts", **PARAM_FON
 fig_resp.write_html(os.path.join(FIG_PATH, "resp.html"))
 
 # Save the data frame
-obs_df.to_csv("observation.csv")
+# obs_df.to_csv("observation.csv")
+
+#%% K means clustering
+user_df = routine.data_generation.Kmeans_cluster(user_df, n_cohorts=10)
+fig_user = px.scatter_3d(
+    user_df.astype({"cohort": str}),
+    x="user_f0",
+    y="user_f1",
+    z="user_fh",
+    color="cohort",
+)
+fig_user.update_traces(marker_size=3)
+fig_user.update_layout(
+    legend={"itemsizing": "constant"},
+    title="Hidden features dependent on cohorts",
+    **PARAM_FONT_SZ,
+)
+fig_user.write_html(os.path.join(FIG_PATH, "user_kmeans.html"))

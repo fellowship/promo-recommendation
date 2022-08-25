@@ -22,9 +22,10 @@ PARAM_DATA = {
     "fh_cohort": True,
     "even_cohort": True,
     "response_sig_a": 10,
-    "cross_response": False,
+    "cross_weight": None,
     "magnify_hf": 1,
     "var_fac_hf": 10,
+    "kmeans": True
 }
 PARAM_XGB = {
     "max_depth": 5,
@@ -34,7 +35,7 @@ PARAM_XGB = {
     "use_label_encoder": False,
 }
 PARAM_NROUND = 30
-PARAM_VAR = np.linspace(0.05, 0.6, 12)
+PARAM_VAR = np.linspace(0.05, 1.0, 12)
 PARAM_COHORT = ["cohort id", "numerical features", "cohort id + numerical features"]
 PARAM_NTRAIN = 10
 OUT_RESULT_PATH = "./intermediate/cohort_var_xgb"
@@ -93,4 +94,4 @@ fig.update_layout(
         color="RebeccaPurple"
     )
 )
-fig.write_html(os.path.join(FIG_PATH, "scores_even_cohort_importance_10.html"))
+fig.write_html(os.path.join(FIG_PATH, "scores_even_cohort_importance_kmeans_10.html"))
