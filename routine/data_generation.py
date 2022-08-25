@@ -42,28 +42,32 @@ def sample_means(n_points, n_dim, method="auto"):
         return eigmap_eqdist(n_points, n_dim)
 
 
-def sample_cohort(cohort, variances, n_features, var_fac_hf=1):
+def sample_cohort(cohort, variances, n_features):
     cohort = np.array(cohort)
     n_cohort = len(np.unique(cohort))
     if np.isscalar(variances):
-        variances = np.repeat(variances, n_cohort)
+        variances = np.full((n_cohort, n_features), variances)
+    elif variances.ndim == 1:
+        if variances.shape[0] == n_cohort:
+            variances = np.repeat(variances[:, np.newaxis], n_features, axis=1)
+        elif variances.shape[0] == n_features:
+            variances = np.repeat(variances[np.newaxis, :], n_cohort, axis=0)
+        else:
+            raise ValueError(
+                "Cannot interpret variances. 1d array must has shape n_cohort or n_features"
+            )
+    else:
+        assert (
+            variances.ndim == 2
+            and variances.shape[0] == n_cohort
+            and variances.shape[1] == n_features
+        ), "Cannot interpret variances, 2d array must has shape (n_cohort, n_features)"
     means = sample_means(n_cohort, n_features)
     means = means[cohort, :]
-    variances = variances[cohort, np.newaxis]
-    if n_features == 3:
-        smps = np.concatenate(
-            [
-                np.random.normal(loc=means[:, :2], scale=variances),
-                np.random.normal(loc=means[:, 2:], scale=var_fac_hf * variances),
-            ],
-            axis=1,
-        )
-    else:
-        smps = np.random.normal(loc=means, scale=variances)
-
+    variances = variances[cohort, :]
+    smps = np.random.normal(loc=means, scale=variances)
     for i in range(smps.shape[1]):
         smps[:, i] = (norm(smps[:, i]) - 0.5) * 2
-
     return smps, means
 
 
@@ -93,7 +97,6 @@ def generate_data(
     min_user_per_cohort=10,
     cross_weight=None,
     magnify_hf=1,
-    var_fac_hf=1,
 ):
     # get number of samples
     nsample = num_campaigns * samples_per_campaign
@@ -112,7 +115,7 @@ def generate_data(
     )
     # generate feature vector for each user
     if fh_cohort:
-        feats, means = sample_cohort(user_df["cohort"], cohort_variances, 3, var_fac_hf)
+        feats, means = sample_cohort(user_df["cohort"], cohort_variances, 3)
         user_df = user_df.assign(
             **{
                 "user_f0": feats[:, 0],
@@ -121,8 +124,13 @@ def generate_data(
             }
         )
     else:
-        feats, _ = sample_cohort(user_df["cohort"], cohort_variances, 2)
-        fh, _ = sample_cohort(user_df["cohort"], cohort_variances, 1)
+        if cohort_variances.ndim == 1 and cohort_variances.shape[0] == 3:
+            var_vis = cohort_variances[:2]
+            var_fh = cohort_variances[2]
+        else:
+            var_vis, var_fh = cohort_variances, cohort_variances
+        feats, _ = sample_cohort(user_df["cohort"], var_vis, 2)
+        fh, _ = sample_cohort(user_df["cohort"], var_fh, 1)
         np.random.shuffle(fh)
         feats = np.concatenate([feats, fh], axis=1)
         user_df = user_df.assign(
