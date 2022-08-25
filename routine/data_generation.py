@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from sklearn.manifold import SpectralEmbedding
-from sklearn.cluster import KMeans
 
 from .utilities import norm, sigmoid
 
@@ -52,9 +51,13 @@ def sample_cohort(cohort, variances, n_features, var_fac_hf=1):
     means = means[cohort, :]
     variances = variances[cohort, np.newaxis]
     if n_features == 3:
-        smps = np.concatenate([np.random.normal(loc=means[:, :2], scale=variances),
-                               np.random.normal(loc=means[:, 2:], scale=var_fac_hf * variances)],
-                              axis=1)
+        smps = np.concatenate(
+            [
+                np.random.normal(loc=means[:, :2], scale=variances),
+                np.random.normal(loc=means[:, 2:], scale=var_fac_hf * variances),
+            ],
+            axis=1,
+        )
     else:
         smps = np.random.normal(loc=means, scale=variances)
 
@@ -91,7 +94,6 @@ def generate_data(
     cross_weight=None,
     magnify_hf=1,
     var_fac_hf=1,
-    kmeans=False
 ):
     # get number of samples
     nsample = num_campaigns * samples_per_campaign
@@ -130,9 +132,6 @@ def generate_data(
                 "user_fh": magnify_hf * feats[:, 2],
             }
         )
-
-    if kmeans:
-        user_df = Kmeans_cluster(user_df, n_cohorts=num_cohort)
     # generate campaigns with random frequency and uniform features
     camp_df = pd.DataFrame(
         {
@@ -152,10 +151,12 @@ def generate_data(
     obs_df = pd.DataFrame({"user_id": user_ids, "camp_id": camp_ids})
     obs_df = obs_df.merge(user_df.drop(columns="freq"), how="left", on="user_id")
     obs_df = obs_df.merge(camp_df.drop(columns="freq"), how="left", on="camp_id")
-
     if cross_weight is not None:
-        cross_prod = np.einsum('ij,ik->ijk', obs_df[["user_f0", "user_f1", "user_fh"]].values,
-                               obs_df[["camp_f0", "camp_f1", "camp_fh"]].values)
+        cross_prod = np.einsum(
+            "ij,ik->ijk",
+            obs_df[["user_f0", "user_f1", "user_fh"]].values,
+            obs_df[["camp_f0", "camp_f1", "camp_fh"]].values,
+        )
         iprod = (cross_weight[np.newaxis, :, :] * cross_prod).sum(axis=(1, 2))
     else:
         iprod = (
@@ -165,22 +166,5 @@ def generate_data(
     if response_sig_a is None:
         obs_df["response"] = iprod > 0
     else:
-        obs_df["response"] = np.random.binomial(
-            n=1, p=sigmoid(iprod, a=response_sig_a)
-        )
-
+        obs_df["response"] = np.random.binomial(n=1, p=sigmoid(iprod, a=response_sig_a))
     return obs_df, user_df, camp_df
-
-
-def Kmeans_cluster(df, n_cohorts):
-    # for k in range(n_cohorts):
-    kmeans_model = KMeans(n_clusters=n_cohorts, random_state=1).fit_predict(df.loc[:, ["user_f0", "user_f1"]])
-    # labels = kmeans_model.labels_
-
-    accuracy = np.sum(kmeans_model == df['cohort']) / len(df['cohort'])
-    # print("K-means clustering accuracy:", accuracy)
-
-    # add the cohort predicted column
-    df['cohort'] = kmeans_model
-
-    return df
