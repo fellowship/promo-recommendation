@@ -1,3 +1,5 @@
+import itertools as itt
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -143,3 +145,7 @@ def generate_feature_columns(hidden_include=False):
 def norm(x):
     xmin, xmax = np.nanmin(x), np.nanmax(x)
     return (x - xmin) / (xmax - xmin)
+
+
+def enumerated_product(*args):
+    yield from zip(itt.product(*(range(len(x)) for x in args)), itt.product(*args))
