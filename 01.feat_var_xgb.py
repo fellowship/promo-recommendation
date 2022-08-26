@@ -46,7 +46,7 @@ PARAM_COHORT = [
     "numerical features",
     "all features",
 ]
-PARAM_NTRAIN = 3
+PARAM_NTRAIN = 10
 OUT_RESULT_PATH = "./intermediate/feat_var_xgb"
 FIG_PATH = "./figs/feat_var_xgb"
 os.makedirs(OUT_RESULT_PATH, exist_ok=True)
