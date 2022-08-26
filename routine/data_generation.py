@@ -46,14 +46,29 @@ def sample_cohort(cohort, variances, n_features):
     cohort = np.array(cohort)
     n_cohort = len(np.unique(cohort))
     if np.isscalar(variances):
-        variances = np.repeat(variances, n_cohort)
+        variances = np.full((n_cohort, n_features), variances)
+    elif variances.ndim == 1:
+        if variances.shape[0] == n_cohort:
+            variances = np.repeat(variances[:, np.newaxis], n_features, axis=1)
+        elif variances.shape[0] == n_features:
+            variances = np.repeat(variances[np.newaxis, :], n_cohort, axis=0)
+        else:
+            raise ValueError(
+                "Cannot interpret variances. 1d array must has shape n_cohort or n_features"
+            )
+    else:
+        assert (
+            variances.ndim == 2
+            and variances.shape[0] == n_cohort
+            and variances.shape[1] == n_features
+        ), "Cannot interpret variances, 2d array must has shape (n_cohort, n_features)"
     means = sample_means(n_cohort, n_features)
     means = means[cohort, :]
-    variances = variances[cohort, np.newaxis]
+    variances = variances[cohort, :]
     smps = np.random.normal(loc=means, scale=variances)
     for i in range(smps.shape[1]):
         smps[:, i] = (norm(smps[:, i]) - 0.5) * 2
-    return smps
+    return smps, means
 
 
 def get_sample_freq(n_samples, nunique, min_count=1):
@@ -100,7 +115,7 @@ def generate_data(
     )
     # generate feature vector for each user
     if fh_cohort:
-        feats = sample_cohort(user_df["cohort"], cohort_variances, 3)
+        feats, means = sample_cohort(user_df["cohort"], cohort_variances, 3)
         user_df = user_df.assign(
             **{
                 "user_f0": feats[:, 0],
@@ -109,8 +124,13 @@ def generate_data(
             }
         )
     else:
-        feats = sample_cohort(user_df["cohort"], cohort_variances, 2)
-        fh = sample_cohort(user_df["cohort"], cohort_variances, 1)
+        if cohort_variances.ndim == 1 and cohort_variances.shape[0] == 3:
+            var_vis = cohort_variances[:2]
+            var_fh = cohort_variances[2]
+        else:
+            var_vis, var_fh = cohort_variances, cohort_variances
+        feats, _ = sample_cohort(user_df["cohort"], var_vis, 2)
+        fh, _ = sample_cohort(user_df["cohort"], var_fh, 1)
         np.random.shuffle(fh)
         feats = np.concatenate([feats, fh], axis=1)
         user_df = user_df.assign(
@@ -140,7 +160,11 @@ def generate_data(
     obs_df = obs_df.merge(user_df.drop(columns="freq"), how="left", on="user_id")
     obs_df = obs_df.merge(camp_df.drop(columns="freq"), how="left", on="camp_id")
     if cross_weight is not None:
-        cross_prod = np.einsum('ij,ik->ijk',obs_df[["user_f0", "user_f1", "user_fh"]].values,obs_df[["camp_f0", "camp_f1", "camp_fh"]].values)
+        cross_prod = np.einsum(
+            "ij,ik->ijk",
+            obs_df[["user_f0", "user_f1", "user_fh"]].values,
+            obs_df[["camp_f0", "camp_f1", "camp_fh"]].values,
+        )
         iprod = (cross_weight[np.newaxis, :, :] * cross_prod).sum(axis=(1, 2))
     else:
         iprod = (
@@ -150,7 +174,5 @@ def generate_data(
     if response_sig_a is None:
         obs_df["response"] = iprod > 0
     else:
-        obs_df["response"] = np.random.binomial(
-            n=1, p=sigmoid(iprod, a=response_sig_a)
-        )
+        obs_df["response"] = np.random.binomial(n=1, p=sigmoid(iprod, a=response_sig_a))
     return obs_df, user_df, camp_df

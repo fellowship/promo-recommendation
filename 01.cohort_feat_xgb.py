@@ -34,8 +34,9 @@ PARAM_XGB = {
 }
 PARAM_NROUND = 30
 PARAM_VAR = np.linspace(0.05, 0.6, 12)
-PARAM_COHORT = ["only_cohort", "only_real_features", "cohort_and_real_features"]
+PARAM_COHORT = ["cohort id", "numerical features", "cohort id + numerical features"]
 PARAM_NTRAIN = 10
+PARAM_FONT_SZ = {"font_size": 16, "title_font_size": 24, "legend_title_font_size": 24}
 OUT_RESULT_PATH = "./intermediate/cohort_feat_xgb"
 FIG_PATH = "./figs/cohort_feat_xgb"
 os.makedirs(OUT_RESULT_PATH, exist_ok=True)
@@ -47,13 +48,13 @@ for cvar, cs, itrain in tqdm(
     list(itt.product(PARAM_VAR, PARAM_COHORT, range(PARAM_NTRAIN)))
 ):
     data, user_df, camp_df = generate_data(cohort_variances=cvar, **PARAM_DATA)
-    if cs == "only_cohort":
+    if cs == "cohort id":
         feat_cols = ["cohort", "camp_f0", "camp_f1"]
         data_modified = pd.get_dummies(data[feat_cols], columns=["cohort"])
-    elif cs == "only_real_features":
+    elif cs == "numerical features":
         feat_cols = ["user_f0", "user_f1", "camp_f0", "camp_f1"]
         data_modified = data[feat_cols]
-    elif cs == "cohort_and_real_features":
+    elif cs == "cohort id + numerical features":
         feat_cols = ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1"]
         data_modified = pd.get_dummies(data[feat_cols], columns=["cohort"])
     model = XGBClassifier(n_estimators=PARAM_NROUND, **PARAM_XGB)
@@ -71,16 +72,15 @@ for cvar, cs, itrain in tqdm(
 result = pd.concat(result_ls, ignore_index=True)
 result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 
-#%% plotting
-result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
+#%% plot result
 fig = px.box(
     result,
     x="cohort_variance",
     y="score",
     color="cs",
     category_orders={
-        "cs": ["only_cohort", "only_real_features", "cohort_and_real_features"]
+        "cs": ["cohort id", "numerical features", "cohort id + numerical features"]
     },
 )
-fig.update_layout(legend_title="cohort importance")
-fig.write_html(os.path.join(FIG_PATH, "scores_even_cohort_importance.html"))
+fig.update_layout(legend_title="Input to the model", **PARAM_FONT_SZ)
+fig.write_html(os.path.join(FIG_PATH, "scores.html"))
