@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>reveal.js</title>
+
+    <link rel="stylesheet" href="dist/reset.css" />
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="dist/theme/white.css" />
+    <link rel="stylesheet" href="dist/custom.css" />
+    <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h1 class="slide_title">Promo Recommendation Demo</h1>
+          <h1 class="slide_subtitle">Week6 8/22-8/26</h1>
+        </section>
+        <section>
+          <h1 class="slide_heading">Progress</h1>
+          <ul>
+            <li>
+              Found a metric to quantify dependencies between cohort id and
+              features
+            </li>
+            <li>
+              Investigated accuracy when cohort id is generated from clustering
+              visible features.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_heading">Previous findings</h1>
+          <embed
+            src="../figs/cohort_feat_xgb/scores.html"
+            width="1500px"
+            height="800px"
+          />
+          <p class="fragment">
+            Hypothesis: Cohort ID contains information about the hidden
+            features.
+          </p>
+        </section>
+        <section>
+          <h1 class="slide_heading">Metric: mutual information</h1>
+          <p>
+            A generalized measurement of dependency without assuming linear
+            relationship
+          </p>
+          <embed
+            src="../figs/feat_mi/mi_matrix.html"
+            width="1700px"
+            height="800px"
+          />
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Relating mutual information with prediction accuracy
+          </h1>
+          <div class="row">
+            <embed
+              src="../figs/cohort_feat_xgb/scores.html"
+              width="1200px"
+              height="700px"
+            />
+            <embed
+              src="../figs/feat_mi/mi_fh_bar.html"
+              width="850px"
+              height="700px"
+            />
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Question: How can we take advantage of cohort structures<br />
+            when the cohort ID is not given in real world?
+          </h1>
+          <p class="fragment">
+            Experiment: Obtaining Cohort ID by clustering visible features.
+          </p>
+        </section>
+        <section>
+          <h1 class="slide_heading">Accuracy with clustered Cohort ID</h1>
+          <embed
+            src="../figs/feat_var_xgb/3d_score.html"
+            width="1800px"
+            height="800px"
+          />
+          <p class="fragment">
+            Conclusion: Clustered cohort ID cannot out-perform visible features.
+          </p>
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Investigating mutual information between<br />
+            clustered Cohort ID and hidden features
+          </h1>
+          <div class="row">
+            <embed
+              src="../figs/feat_var_xgb/score_slice.html"
+              width="1100px"
+              height="700px"
+            />
+            <embed
+              src="../figs/feat_mi/mi_fh_bar_cluster.html"
+              width="900px"
+              height="700px"
+              class="fragment"
+            />
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">Plan for next week</h1>
+          <ul>
+            <li>Explore whether the deep model can learn cohort structures.</li>
+            <li>
+              Explore whether clustering can improve performance of the deep
+              model.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_title">Thank you!</h1>
+        </section>
+      </div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script src="plugin/math/math.js"></script>
+    <script src="plugin/spotlight/spotlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        width: 1920,
+        height: 1080,
+        slideNumber: "c/t",
+        autoPlayMedia: true,
+
+        spotlight: {
+          size: 120,
+          presentingCursor: "crosshair",
+          initialPresentationMode: false,
+        },
+        keyboard: {
+          // enter/leave spotlight presentation mode by pressing key 'c'
+          67: function () {
+            RevealSpotlight.togglePresentationMode();
+          },
+        },
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealNotes,
+          RevealMath,
+          RevealSpotlight,
+        ],
+      });
+      Reveal.configure({ pdfSeparateFragments: false });
+    </script>
+  </body>
+</html>

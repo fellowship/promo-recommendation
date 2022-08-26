@@ -78,5 +78,7 @@ fig = px.box(
     color="fh",
     category_orders={"fh": ["none", "cohort", "independent"]},
 )
-fig.update_layout(legend_title="hidden feature")
+fig.update_layout(
+    legend_title="hidden feature", xaxis_title="Cohort Variance", yaxis_title="CV Score"
+)
 fig.write_html(os.path.join(FIG_PATH, "scores.html"))
