@@ -73,6 +73,7 @@ result = pd.concat(result_ls, ignore_index=True)
 result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 
 #%% plot result
+result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
 fig = px.box(
     result,
     x="cohort_variance",
@@ -82,5 +83,10 @@ fig = px.box(
         "cs": ["cohort id", "numerical features", "cohort id + numerical features"]
     },
 )
-fig.update_layout(legend_title="Input to the model", **PARAM_FONT_SZ)
+fig.update_layout(
+    legend_title="Input to the model",
+    xaxis_title="Cohort Variance",
+    yaxis_title="CV Score",
+    **PARAM_FONT_SZ
+)
 fig.write_html(os.path.join(FIG_PATH, "scores.html"))
