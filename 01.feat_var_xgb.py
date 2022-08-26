@@ -108,12 +108,12 @@ options = {
     },
     "real cohort id + numerical features": {
         "colorscale": "reds_r",
-        "name": "cohort id + numerical features",
+        "name": "real cohort id + numerical features",
         "legendgroup": "cohort id + numerical features",
     },
     "clustered cohort id + numerical features": {
-        "colorscale": "reds_r",
-        "name": "cohort id + numerical features",
+        "colorscale": "purples_r",
+        "name": "clustered cohort id + numerical features",
         "legendgroup": "cohort id + numerical features",
     },
 }
@@ -128,8 +128,8 @@ fig = make_subplots(
     cols=2,
     specs=[[{"is_3d": True}, {"is_3d": True}]],
     subplot_titles=[
-        "real cohort id + numerical features",
-        "clustered cohort id + numerical features",
+        "<b>real cohort id</b> + numerical features",
+        "<b>clustered cohort id</b> + numerical features",
     ],
 )
 for cs, cs_df in result_agg.groupby("cs"):
@@ -149,6 +149,7 @@ for cs, cs_df in result_agg.groupby("cs"):
         for c in range(2):
             fig.add_trace(trace, row=1, col=c + 1)
 fig.update_layout(scene=scene_opts, scene2=scene_opts, **PARAM_FONT_SZ)
+fig.update_annotations(font_size=PARAM_FONT_SZ["title_font_size"])
 fig.write_html(os.path.join(FIG_PATH, "3d_score.html"))
 
 #%% plot slice of score
