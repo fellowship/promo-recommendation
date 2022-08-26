@@ -4,6 +4,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import plotly.express as px
 from tqdm.auto import tqdm
 
 from routine.data_generation import generate_data
@@ -27,7 +28,7 @@ OUT_PATH = "./intermediate/feat_mi"
 os.makedirs(FIG_PATH, exist_ok=True)
 os.makedirs(OUT_PATH, exist_ok=True)
 
-#%% generate data
+#%% generate data with uniform variance
 mi_df = []
 for cvar in tqdm(PARAM_VAR):
     obs_df, user_df, camp_df = generate_data(cohort_variances=cvar, **PARAM_DATA)
@@ -41,8 +42,9 @@ for cvar in tqdm(PARAM_VAR):
             .T
         )
 mi_df = pd.concat(mi_df, ignore_index=True)
-mi_df.to_csv(os.path.join(OUT_PATH, "mi_df.csv"))
-#%% plot mi
+mi_df.to_csv(os.path.join(OUT_PATH, "mi_df_uniform.csv"), index=False)
+#%% plot mi matrix
+mi_df = pd.read_csv(os.path.join(OUT_PATH, "mi_df_uniform.csv"))
 fig = imshow(
     mi_df,
     facet_row=None,
@@ -58,4 +60,15 @@ fig = imshow(
 fig.update_layout(
     {"coloraxis": {"cmin": 0, "cmax": 3, "colorscale": "viridis"}}, **PARAM_FONT_SZ
 )
-fig.write_html(os.path.join(FIG_PATH, "feat_mi.html"))
+fig.write_html(os.path.join(FIG_PATH, "mi_matrix.html"))
+
+#%% plot fh mi bar
+mi_df = pd.read_csv(os.path.join(OUT_PATH, "mi_df_uniform.csv"))
+mi_df = mi_df[(mi_df["featB"] == "user_fh") & (mi_df["featA"] != "user_fh")].copy()
+fig = px.bar(mi_df, x="cohort_var", y="mi", color="featA")
+fig.update_layout(
+    legend_title="Variable",
+    xaxis_title="Cohort Variance",
+    yaxis_title="Mutual Information<br>Shared with Hidden Feature",
+)
+fig.write_html(os.path.join(FIG_PATH, "mi_fh_bar.html"))
