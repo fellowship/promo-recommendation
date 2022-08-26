@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.express.colors import qualitative
 from plotly.subplots import make_subplots
 from sklearn.model_selection import cross_validate
 from tqdm.auto import tqdm
@@ -167,13 +168,15 @@ fig = px.box(
         ]
     },
     color_discrete_map={
-        "all features": "green",
-        "real cohort id + numerical features": "red",
-        "clustered cohort id + numerical features": "purple",
-        "numerical features": "blue",
+        "all features": qualitative.Plotly[2],
+        "real cohort id + numerical features": qualitative.Plotly[1],
+        "clustered cohort id + numerical features": qualitative.Plotly[3],
+        "numerical features": qualitative.Plotly[0],
     },
 )
 fig.update_layout(
+    xaxis_title="Visible Feature Variance",
+    yaxis_title="CV Score",
     legend_title="Input to the model",
     title="hidden feature variance: 0.2",
     **PARAM_FONT_SZ,
