@@ -41,9 +41,9 @@ PARAM_NROUND = 30
 PARAM_VAR_F = np.linspace(0.1, 0.6, 6)
 PARAM_VAR_FH = np.linspace(0.1, 0.6, 6)
 PARAM_COHORT = [
-    "real cohort id + numerical features",
-    "clustered cohort id + numerical features",
-    "numerical features",
+    "real cohort id + visible features",
+    "clustered cohort id + visible features",
+    "visible features",
     "all features",
 ]
 PARAM_NTRAIN = 10
@@ -60,14 +60,14 @@ for var_f, var_fh, cs, itrain in tqdm(
     data, user_df, camp_df = generate_data(
         cohort_variances=np.array([var_f, var_f, var_fh]), **PARAM_DATA
     )
-    if cs == "real cohort id + numerical features":
+    if cs == "real cohort id + visible features":
         feat_cols = ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1"]
-    elif cs == "clustered cohort id + numerical features":
+    elif cs == "clustered cohort id + visible features":
         feat_cols = ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1"]
         data["cohort"] = Kmeans_cluster(
             data[["user_f0", "user_f1"]], PARAM_DATA["num_cohort"]
         )
-    elif cs == "numerical features":
+    elif cs == "visible features":
         feat_cols = ["user_f0", "user_f1", "camp_f0", "camp_f1"]
     elif cs == "all features":
         feat_cols = ["user_f0", "user_f1", "user_fh", "camp_f0", "camp_f1"]
@@ -95,10 +95,10 @@ result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
 result_agg = result.groupby(["var_fvis", "var_fh", "cs"])["score"].mean().reset_index()
 options_all = {"opacity": 1, "showscale": False, "showlegend": True}
 options = {
-    "numerical features": {
+    "visible features": {
         "colorscale": "blues_r",
-        "name": "numerical features",
-        "legendgroup": "numerical features",
+        "name": "visible features",
+        "legendgroup": "visible features",
     },
     "all features": {
         "colorscale": "greens_r",
@@ -106,15 +106,15 @@ options = {
         "name": "all features",
         "legendgroup": "all features",
     },
-    "real cohort id + numerical features": {
+    "real cohort id + visible features": {
         "colorscale": "reds_r",
-        "name": "real cohort id + numerical features",
-        "legendgroup": "cohort id + numerical features",
+        "name": "real cohort id + visible features",
+        "legendgroup": "cohort id + visible features",
     },
-    "clustered cohort id + numerical features": {
+    "clustered cohort id + visible features": {
         "colorscale": "purples_r",
-        "name": "clustered cohort id + numerical features",
-        "legendgroup": "cohort id + numerical features",
+        "name": "clustered cohort id + visible features",
+        "legendgroup": "cohort id + visible features",
     },
 }
 scene_opts = {
@@ -128,8 +128,8 @@ fig = make_subplots(
     cols=2,
     specs=[[{"is_3d": True}, {"is_3d": True}]],
     subplot_titles=[
-        "<b>real cohort id</b> + numerical features",
-        "<b>clustered cohort id</b> + numerical features",
+        "<b>real cohort id</b> + visible features",
+        "<b>clustered cohort id</b> + visible features",
     ],
 )
 for cs, cs_df in result_agg.groupby("cs"):
@@ -141,9 +141,9 @@ for cs, cs_df in result_agg.groupby("cs"):
         z=arr.values,
         **opts,
     )
-    if cs == "real cohort id + numerical features":
+    if cs == "real cohort id + visible features":
         fig.add_trace(trace, row=1, col=1)
-    elif cs == "clustered cohort id + numerical features":
+    elif cs == "clustered cohort id + visible features":
         fig.add_trace(trace, row=1, col=2)
     else:
         for c in range(2):
@@ -163,16 +163,16 @@ fig = px.box(
     category_orders={
         "cs": [
             "all features",
-            "real cohort id + numerical features",
-            "clustered cohort id + numerical features",
-            "numerical features",
+            "real cohort id + visible features",
+            "clustered cohort id + visible features",
+            "visible features",
         ]
     },
     color_discrete_map={
         "all features": qualitative.Plotly[2],
-        "real cohort id + numerical features": qualitative.Plotly[1],
-        "clustered cohort id + numerical features": qualitative.Plotly[3],
-        "numerical features": qualitative.Plotly[0],
+        "real cohort id + visible features": qualitative.Plotly[1],
+        "clustered cohort id + visible features": qualitative.Plotly[3],
+        "visible features": qualitative.Plotly[0],
     },
 )
 fig.update_layout(
