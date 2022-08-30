@@ -1,5 +1,8 @@
 import numpy as np
+import pandas as pd
 import tensorflow as tf
+from sklearn.cluster import KMeans
+from xgboost import XGBClassifier
 
 
 def build_wide_model(
@@ -302,4 +305,31 @@ def evaluate_bandit(test_model, dl, num_of_samples=100):
     ucb_bandit_output = np.concatenate(ucb_bandit_output_l, axis=0)
     del ucb_bandit_output_l
     return np.mean(ts_bandit_output), np.mean(ucb_bandit_output)
-    
+
+
+def cluster_xgb(
+    df,
+    feats,
+    resp="response",
+    n_cohort=None,
+    run_cluster=False,
+    cluster_feats=["user_f0", "user_f1"],
+    cluster_model=None,
+    xgb_model=None,
+    xgb_warm_start=False,
+    **kwargs,
+):
+    if run_cluster:
+        if cluster_model is None:
+            cluster_model = KMeans(n_clusters=n_cohort)
+            cluster_model.fit(df[cluster_feats])
+        df["cohort"] = cluster_model.predict(df[cluster_feats])
+    X = pd.get_dummies(df[feats])
+    y = df[resp]
+    if xgb_model is None:
+        xgb_model = XGBClassifier(**kwargs)
+        xgb_model.fit(X, y)
+    elif xgb_warm_start:
+        xgb_model.fit(X, y, xgb_model=xgb_model.get_booster())
+    score = xgb_model.score(X, y)
+    return score, cluster_model, xgb_model
