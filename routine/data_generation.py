@@ -175,4 +175,10 @@ def generate_data(
         obs_df["response"] = iprod > 0
     else:
         obs_df["response"] = np.random.binomial(n=1, p=sigmoid(iprod, a=response_sig_a))
-    return obs_df, user_df, camp_df
+    return (
+        obs_df.astype(
+            {"cohort": "category", "user_id": "category", "camp_id": "category"}
+        ),
+        user_df.astype({"cohort": "category", "user_id": "category"}),
+        camp_df.astype({"camp_id": "category"}),
+    )
