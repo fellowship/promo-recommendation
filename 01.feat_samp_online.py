@@ -157,3 +157,43 @@ for sc_name, plt_title in title_map.items():
         **PARAM_FONT_SZ,
     )
     fig.write_html(os.path.join(FIG_PATH, "by_feats", "{}.html".format(sc_name)))
+
+#%% plot result by score
+result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
+data_map = {
+    "score_test": "New users and campaigns",
+    "score_valid": "Seen users and campaigns",
+    "score_user": "New campaigns",
+    "score_train": "Training data",
+}
+id_cols = result.columns[
+    list(map(lambda c: not c.startswith("score_"), result.columns))
+]
+result = (
+    result.melt(id_vars=id_cols, var_name="data_type", value_name="score")
+    .replace({"data_type": data_map})
+    .groupby(["cohort_variance", "feats", "data_prop", "sampling", "data_type"])[
+        "score"
+    ]
+    .agg(["mean", "sem"])
+    .reset_index()
+)
+os.makedirs(os.path.join(FIG_PATH, "by_score"), exist_ok=True)
+for feat, data_df in result.groupby("feats"):
+    fig = line(
+        data_frame=data_df,
+        x="data_prop",
+        y="mean",
+        color="data_type",
+        facet_row="sampling",
+        facet_col="cohort_variance",
+        error_y="sem",
+        error_y_mode="bands",
+        labels={"data_prop": "Proportion of Data/Campaigns", "mean": "CV Score"},
+    )
+    fig.update_layout(
+        title={"text": feat, "x": 0.5, "xanchor": "center"},
+        legend_title="Testing Data",
+        **PARAM_FONT_SZ,
+    )
+    fig.write_html(os.path.join(FIG_PATH, "by_score", "{}.html".format(feat)))
