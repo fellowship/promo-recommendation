@@ -124,37 +124,36 @@ for cvar, pkey, samp, itrain in tqdm(
 result = pd.concat(result_ls, ignore_index=True)
 result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 
-#%% plot result
+#%% plot result by features
 result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
-test_df = (
-    result.groupby(["cohort_variance", "feats", "data_prop", "sampling"])["score_test"]
-    .agg(["mean", "sem"])
-    .reset_index()
-)
-train_df = (
-    result.groupby(["cohort_variance", "feats", "data_prop", "sampling"])["score_train"]
-    .agg(["mean", "sem"])
-    .reset_index()
-)
-fig_train = line(
-    data_frame=train_df,
-    x="data_prop",
-    y="mean",
-    color="feats",
-    facet_row="sampling",
-    facet_col="cohort_variance",
-    error_y="sem",
-    error_y_mode="bands",
-)
-fig_test = line(
-    data_frame=test_df,
-    x="data_prop",
-    y="mean",
-    color="feats",
-    facet_row="sampling",
-    facet_col="cohort_variance",
-    error_y="sem",
-    error_y_mode="bands",
-)
-fig_train.write_html(os.path.join(FIG_PATH, "train.html"))
-fig_test.write_html(os.path.join(FIG_PATH, "test.html"))
+os.makedirs(os.path.join(FIG_PATH, "by_feats"), exist_ok=True)
+title_map = {
+    "score_test": "New users and campaigns",
+    "score_valid": "Seen users and campaigns",
+    "score_user": "New campaigns",
+    "score_train": "Training data",
+}
+for sc_name, plt_title in title_map.items():
+    data_df = (
+        result.groupby(["cohort_variance", "feats", "data_prop", "sampling"])[sc_name]
+        .agg(["mean", "sem"])
+        .reset_index()
+    )
+    fig = line(
+        data_frame=data_df,
+        x="data_prop",
+        y="mean",
+        color="feats",
+        facet_row="sampling",
+        facet_col="cohort_variance",
+        error_y="sem",
+        error_y_mode="bands",
+    )
+    fig.update_layout(
+        title={"text": plt_title, "x": 0.5, "xanchor": "center"},
+        xaxis_title="Proportion of Data/Campaigns",
+        yaxis_title="CV Score",
+        legend_title="features",
+        **PARAM_FONT_SZ,
+    )
+    fig.write_html(os.path.join(FIG_PATH, "by_feats", "{}.html".format(sc_name)))
