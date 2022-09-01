@@ -35,14 +35,18 @@ PARAM_NROUND = 30
 PARAM_VAR = np.linspace(0.1, 0.6, 3)
 PARAM_MAP = {
     "real cohort id + visible features": {
-        "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1"]
+        "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"]
     },
     "clustered cohort id + visible features": {
-        "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1"],
+        "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
         "run_cluster": True,
     },
-    "visible features": {"feats": ["user_f0", "user_f1", "camp_f0", "camp_f1"]},
-    "all features": {"feats": ["user_f0", "user_f1", "user_fh", "camp_f0", "camp_f1"]},
+    "visible features": {
+        "feats": ["user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"]
+    },
+    "all features": {
+        "feats": ["user_f0", "user_f1", "user_fh", "camp_f0", "camp_f1", "camp_fh"]
+    },
 }
 PARAM_SAMP = ["random", "by_camp"]
 PARAM_NTRAIN = 5
