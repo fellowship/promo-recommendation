@@ -61,7 +61,13 @@ result_ls = []
 for cvar, pkey, samp, itrain in tqdm(
     list(itt.product(PARAM_VAR, PARAM_MAP.keys(), PARAM_SAMP, range(PARAM_NTRAIN)))
 ):
-    data_train, _, _ = generate_data(cohort_variances=cvar, **PARAM_DATA)
+    data_train, user_df, camp_df = generate_data(cohort_variances=cvar, **PARAM_DATA)
+    data_valid, _, _ = generate_data(
+        cohort_variances=cvar, user_df=user_df, camp_df=camp_df, **PARAM_DATA
+    )
+    data_user, _, _ = generate_data(
+        cohort_variances=cvar, user_df=user_df, **PARAM_DATA
+    )
     data_test, _, _ = generate_data(cohort_variances=cvar, **PARAM_DATA)
     nsplit = PARAM_DATA["num_campaigns"]
     if samp == "random":
@@ -71,7 +77,12 @@ for cvar, pkey, samp, itrain in tqdm(
     elif samp == "by_camp":
         data_train_ls = [g[1] for g in data_train.groupby("camp_id")]
     cur_param = PARAM_MAP[pkey]
-    score_test, score_train = np.zeros(len(data_train_ls)), np.zeros(len(data_train_ls))
+    score_test, score_valid, score_user, score_train = (
+        np.zeros(len(data_train_ls)),
+        np.zeros(len(data_train_ls)),
+        np.zeros(len(data_train_ls)),
+        np.zeros(len(data_train_ls)),
+    )
     for isub in range(len(data_train_ls)):
         cur_data = pd.concat(data_train_ls[: isub + 1], ignore_index=True)
         try:
@@ -83,10 +94,18 @@ for cvar, pkey, samp, itrain in tqdm(
         s_train, _, _ = cluster_xgb(
             data_train, cluster_model=cluster_model, xgb_model=xgb_model, **cur_param
         )
+        s_valid, _, _ = cluster_xgb(
+            data_valid, cluster_model=cluster_model, xgb_model=xgb_model, **cur_param
+        )
+        s_user, _, _ = cluster_xgb(
+            data_user, cluster_model=cluster_model, xgb_model=xgb_model, **cur_param
+        )
         s_test, _, _ = cluster_xgb(
             data_test, cluster_model=cluster_model, xgb_model=xgb_model, **cur_param
         )
         score_train[isub] = s_train
+        score_valid[isub] = s_valid
+        score_user[isub] = s_user
         score_test[isub] = s_test
     score = pd.DataFrame(
         {
@@ -95,6 +114,8 @@ for cvar, pkey, samp, itrain in tqdm(
             "itrain": itrain,
             "data_prop": (np.arange(nsplit) + 1) / nsplit,
             "score_test": score_test,
+            "score_valid": score_valid,
+            "score_user": score_user,
             "score_train": score_train,
             "sampling": samp,
         }
