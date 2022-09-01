@@ -148,7 +148,8 @@ for sc_name, plt_title in title_map.items():
         facet_col="cohort_variance",
         error_y="sem",
         error_y_mode="bands",
-        labels={"data_prop": "Proportion of Data/Campaigns", "mean": "CV Score"},
+        labels={"data_prop": "Proportion of<br>Data/Campaigns", "mean": "CV Score"},
+        range_y=(0.35, 0.9),
     )
     fig.update_layout(
         title={"text": plt_title, "x": 0.5, "xanchor": "center"},
@@ -188,7 +189,8 @@ for feat, data_df in result.groupby("feats"):
         facet_col="cohort_variance",
         error_y="sem",
         error_y_mode="bands",
-        labels={"data_prop": "Proportion of Data/Campaigns", "mean": "CV Score"},
+        labels={"data_prop": "Proportion of<br>Data/Campaigns", "mean": "CV Score"},
+        range_y=(0.45, 1),
     )
     fig.update_layout(
         title={"text": feat, "x": 0.5, "xanchor": "center"},
