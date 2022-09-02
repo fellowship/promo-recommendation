@@ -128,9 +128,9 @@ result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
 os.makedirs(os.path.join(FIG_PATH, "by_feats"), exist_ok=True)
 title_map = {
-    "score_test": "New users and campaigns",
-    "score_valid": "Seen users and campaigns",
-    "score_user": "New campaigns",
+    "score_test": "New users, New campaigns",
+    "score_valid": "Seen users, Seen campaigns",
+    "score_user": "Seen users, New campaigns",
     "score_train": "Training data",
 }
 for sc_name, plt_title in title_map.items():
@@ -161,10 +161,10 @@ for sc_name, plt_title in title_map.items():
 #%% plot result by score
 result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
 data_map = {
-    "score_test": "New users and campaigns",
-    "score_valid": "Seen users and campaigns",
-    "score_user": "New campaigns",
     "score_train": "Training data",
+    "score_valid": "Seen users, Seen campaigns",
+    "score_user": "Seen users, New campaigns",
+    "score_test": "New users, New campaigns",
 }
 id_cols = result.columns[
     list(map(lambda c: not c.startswith("score_"), result.columns))
@@ -191,6 +191,7 @@ for feat, data_df in result.groupby("feats"):
         error_y_mode="bands",
         labels={"data_prop": "Proportion of<br>Data/Campaigns", "mean": "CV Score"},
         range_y=(0.45, 1),
+        category_orders={"data_type": list(data_map.values())},
     )
     fig.update_layout(
         title={"text": feat, "x": 0.5, "xanchor": "center"},
