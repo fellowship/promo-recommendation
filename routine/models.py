@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn.cluster import KMeans
+from sklearn.metrics import accuracy_score
+from sklearn.neighbors import KNeighborsClassifier
 from xgboost import XGBClassifier
 
 
@@ -333,3 +335,41 @@ def cluster_xgb(
         xgb_model.fit(X, y, xgb_model=xgb_model.get_booster())
     score = xgb_model.score(X, y)
     return score, cluster_model, xgb_model
+
+
+class CohortXGB:
+    def __init__(
+        self,
+        n_cohort,
+        feats,
+        resp="response",
+        cohort_feats=None,
+        n_neighbors=1,
+        use_cohort_resp=False,
+        **kwargs,
+    ) -> None:
+        self.cluster_model = KMeans(n_clusters=n_cohort)
+        self.cohort_model = KNeighborsClassifier(n_neighbors=n_neighbors)
+        self.xgb_model = XGBClassifier(**kwargs)
+        self.use_cohort_resp = use_cohort_resp
+        self.feats = feats
+        self.resp = resp
+        self.cohort_feats = cohort_feats
+
+    def fit(self, df):
+        if self.cohort_feats is not None:
+            cluster_feats = self.cohort_feats
+            if self.use_cohort_resp:
+                cluster_feats += [self.resp]
+            df["cohort"] = self.cluster_model.fit_predict(df[cluster_feats])
+            self.cohort_model.fit(df[self.cohort_feats], df["cohort"])
+        self.xgb_model.fit(pd.get_dummies(df[self.feats]), df[self.resp])
+
+    def predict(self, df):
+        if self.cohort_feats is not None:
+            df["cohort"] = self.cohort_model.predict(df[self.cohort_feats])
+        return self.xgb_model.predict(pd.get_dummies(df[self.feats]))
+
+    def score(self, df):
+        y_prd = self.predict(df)
+        return accuracy_score(df[self.resp], y_prd)
