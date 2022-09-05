@@ -97,63 +97,68 @@ def generate_data(
     min_user_per_cohort=10,
     cross_weight=None,
     magnify_hf=1,
+    user_df=None,
+    camp_df=None,
 ):
     # get number of samples
     nsample = num_campaigns * samples_per_campaign
-    # assign users to cohorts uniformly with random frequency
-    uids = np.arange(num_users)
-    if even_cohort:
-        cohort_freq = [len(c) for c in np.array_split(uids, num_cohort)]
-    else:
-        cohort_freq = get_sample_freq(num_users, num_cohort, min_user_per_cohort)
-    user_df = pd.DataFrame(
-        {
-            "user_id": uids,
-            "cohort": np.repeat(np.arange(num_cohort), cohort_freq),
-            "freq": get_sample_freq(nsample, num_users),
-        }
-    )
-    # generate feature vector for each user
-    if fh_cohort:
-        feats, means = sample_cohort(user_df["cohort"], cohort_variances, 3)
-        user_df = user_df.assign(
-            **{
-                "user_f0": feats[:, 0],
-                "user_f1": feats[:, 1],
-                "user_fh": magnify_hf * feats[:, 2],
-            }
-        )
-    else:
-        if cohort_variances.ndim == 1 and cohort_variances.shape[0] == 3:
-            var_vis = cohort_variances[:2]
-            var_fh = cohort_variances[2]
+    # generate user df
+    if user_df is None:
+        # assign users to cohorts uniformly with random frequency
+        uids = np.arange(num_users)
+        if even_cohort:
+            cohort_freq = [len(c) for c in np.array_split(uids, num_cohort)]
         else:
-            var_vis, var_fh = cohort_variances, cohort_variances
-        feats, _ = sample_cohort(user_df["cohort"], var_vis, 2)
-        fh, _ = sample_cohort(user_df["cohort"], var_fh, 1)
-        np.random.shuffle(fh)
-        feats = np.concatenate([feats, fh], axis=1)
-        user_df = user_df.assign(
-            **{
-                "user_f0": feats[:, 0],
-                "user_f1": feats[:, 1],
-                "user_fh": magnify_hf * feats[:, 2],
+            cohort_freq = get_sample_freq(num_users, num_cohort, min_user_per_cohort)
+        user_df = pd.DataFrame(
+            {
+                "user_id": uids,
+                "cohort": np.repeat(np.arange(num_cohort), cohort_freq),
+                "freq": get_sample_freq(nsample, num_users),
             }
         )
+        # generate feature vector for each user
+        if fh_cohort:
+            feats, means = sample_cohort(user_df["cohort"], cohort_variances, 3)
+            user_df = user_df.assign(
+                **{
+                    "user_f0": feats[:, 0],
+                    "user_f1": feats[:, 1],
+                    "user_fh": magnify_hf * feats[:, 2],
+                }
+            )
+        else:
+            if cohort_variances.ndim == 1 and cohort_variances.shape[0] == 3:
+                var_vis = cohort_variances[:2]
+                var_fh = cohort_variances[2]
+            else:
+                var_vis, var_fh = cohort_variances, cohort_variances
+            feats, _ = sample_cohort(user_df["cohort"], var_vis, 2)
+            fh, _ = sample_cohort(user_df["cohort"], var_fh, 1)
+            np.random.shuffle(fh)
+            feats = np.concatenate([feats, fh], axis=1)
+            user_df = user_df.assign(
+                **{
+                    "user_f0": feats[:, 0],
+                    "user_f1": feats[:, 1],
+                    "user_fh": magnify_hf * feats[:, 2],
+                }
+            )
     # generate campaigns with random frequency and uniform features
-    camp_df = pd.DataFrame(
-        {
-            "camp_id": np.arange(num_campaigns),
-            "freq": get_sample_freq(nsample, num_campaigns),
-        }
-    )
-    feats = sample_means(num_campaigns, n_dim=3)
-    camp_df = camp_df.assign(
-        **{"camp_f0": feats[:, 0], "camp_f1": feats[:, 1], "camp_fh": feats[:, 2]}
-    )
+    if camp_df is None:
+        camp_df = pd.DataFrame(
+            {
+                "camp_id": np.arange(num_campaigns),
+                "freq": get_sample_freq(nsample, num_campaigns),
+            }
+        )
+        feats = sample_means(num_campaigns, n_dim=3)
+        camp_df = camp_df.assign(
+            **{"camp_f0": feats[:, 0], "camp_f1": feats[:, 1], "camp_fh": feats[:, 2]}
+        )
     # build observations
-    user_ids = np.repeat(user_df["user_id"].values, user_df["freq"].values)
-    camp_ids = np.repeat(camp_df["camp_id"].values, camp_df["freq"].values)
+    user_ids = np.repeat(np.array(user_df["user_id"]), np.array(user_df["freq"]))
+    camp_ids = np.repeat(np.array(camp_df["camp_id"]), np.array(camp_df["freq"]))
     np.random.shuffle(user_ids)
     np.random.shuffle(camp_ids)
     obs_df = pd.DataFrame({"user_id": user_ids, "camp_id": camp_ids})
@@ -175,4 +180,10 @@ def generate_data(
         obs_df["response"] = iprod > 0
     else:
         obs_df["response"] = np.random.binomial(n=1, p=sigmoid(iprod, a=response_sig_a))
-    return obs_df, user_df, camp_df
+    return (
+        obs_df.astype(
+            {"cohort": "category", "user_id": "category", "camp_id": "category"}
+        ),
+        user_df.astype({"cohort": "category", "user_id": "category"}),
+        camp_df.astype({"camp_id": "category"}),
+    )
