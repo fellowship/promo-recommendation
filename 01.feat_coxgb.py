@@ -16,7 +16,7 @@ import plotly.express as px
 PARAM_DATA = {
     "num_users": 1000,
     "num_campaigns": 100,
-    "samples_per_campaign": 1000,
+    "samples_per_campaign": 10000,
     "num_cohort": 10,
     "fh_cohort": True,
     "even_cohort": True,
@@ -32,8 +32,7 @@ PARAM_XGB = {
     "use_label_encoder": False,
 }
 PARAM_NROUND = 30
-# PARAM_VAR = np.linspace(0.1, 0.6, 3)
-PARAM_VAR = np.array([0.1, 0.6])
+PARAM_VAR = np.linspace(0.1, 0.6, 3)
 PARAM_MAP = {
     "real cohort id + visible features": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"]
@@ -67,11 +66,14 @@ result_ls = []
 for cvar, pkey, itrain in tqdm(
     list(itt.product(PARAM_VAR, PARAM_MAP.keys(), range(PARAM_NTRAIN)))
 ):
-    data_train, user_df, camp_df = generate_data(cohort_variances=cvar, **PARAM_DATA)
-    data_user, _, _ = generate_data(
-        cohort_variances=cvar, user_df=user_df, **PARAM_DATA
+    cohort_var = np.array([cvar, cvar, 0.1])
+    data_train, user_df, camp_df = generate_data(
+        cohort_variances=cohort_var, **PARAM_DATA
     )
-    data_test, _, _ = generate_data(cohort_variances=cvar, **PARAM_DATA)
+    data_user, _, _ = generate_data(
+        cohort_variances=cohort_var, user_df=user_df, **PARAM_DATA
+    )
+    data_test, _, _ = generate_data(cohort_variances=cohort_var, **PARAM_DATA)
     cur_param = PARAM_MAP[pkey]
     model = CohortXGB(n_cohort=PARAM_DATA["num_cohort"], **cur_param, **PARAM_XGB)
     model.fit(data_train)
