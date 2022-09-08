@@ -388,12 +388,16 @@ class CohortXGB:
             )
         self.xgb_model.fit(pd.get_dummies(df[self.feats]), df[self.resp])
 
+    def predict_cohort(self, df):
+        assert self.cohort_feats is not None
+        return pd.Categorical(
+            self.cohort_model.predict(df[self.cohort_feats]),
+            categories=df["cohort"].values.categories,
+        )
+
     def predict(self, df):
         if self.cohort_feats is not None:
-            df["cohort"] = pd.Categorical(
-                self.cohort_model.predict(df[self.cohort_feats]),
-                categories=df["cohort"].values.categories,
-            )
+            df["cohort"] = self.predict_cohort(df)
         return self.xgb_model.predict(pd.get_dummies(df[self.feats]))
 
     def score(self, df):
