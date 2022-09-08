@@ -7,12 +7,13 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import numpy as np
 import pandas as pd
+import plotly.express as px
+from sklearn.metrics import normalized_mutual_info_score
 from tqdm.auto import tqdm
 
 from routine.data_generation import generate_data
 from routine.models import CohortXGB
 from routine.training import cv_by_id
-import plotly.express as px
 
 PARAM_DATA = {
     "num_users": 1000,
@@ -72,11 +73,16 @@ for cvar, pkey, splt_by, itrain in tqdm(
     cohort_var = np.array([cvar, cvar, 0.1])
     data, _, _ = generate_data(cohort_variances=cohort_var, **PARAM_DATA)
     cur_param = PARAM_MAP[pkey]
-    scores = []
-    for data_train, data_test in cv_by_id(data, PARAM_CV, splt_by):
+    scores, cohort_mi = np.full(PARAM_CV, np.nan), np.full(PARAM_CV, np.nan)
+    for icv, (data_train, data_test) in enumerate(cv_by_id(data, PARAM_CV, splt_by)):
         model = CohortXGB(n_cohort=PARAM_DATA["num_cohort"], **cur_param, **PARAM_XGB)
         model.fit(data_train)
-        scores.append(model.score(data_test))
+        if "cohort_feats" in cur_param:
+            cohort_prd = model.predict_cohort(data_test)
+            cohort_mi[icv] = normalized_mutual_info_score(
+                data_test["cohort"], cohort_prd
+            )
+        scores[icv] = model.score(data_test)
     score = pd.DataFrame(
         {
             "cohort_variance": cvar,
@@ -84,7 +90,8 @@ for cvar, pkey, splt_by, itrain in tqdm(
             "itrain": itrain,
             "split_by": splt_by,
             "cv": np.arange(PARAM_CV),
-            "scores": np.array(scores),
+            "scores": scores,
+            "cohort_mi": cohort_mi,
         }
     )
     result_ls.append(score)
@@ -93,12 +100,13 @@ result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 
 #%% plot result
 result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
-fig = px.box(
-    result,
-    x="cohort_variance",
-    y="scores",
-    color="feats",
-    facet_row="split_by",
-    labels={"scores": "CV Score", "cohort_variance": "Cohort Variance"},
-)
-fig.write_html(os.path.join(FIG_PATH, "scores.html"))
+for yvar in ["scores", "cohort_mi"]:
+    fig = px.box(
+        result,
+        x="cohort_variance",
+        y=yvar,
+        color="feats",
+        facet_row="split_by",
+        labels={"scores": "CV Score", "cohort_variance": "Visible Feature Variance"},
+    )
+    fig.write_html(os.path.join(FIG_PATH, "{}.html".format(yvar)))
