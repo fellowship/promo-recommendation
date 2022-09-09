@@ -38,15 +38,15 @@ PARAM_XGB = {
 PARAM_NROUND = 30
 PARAM_VAR = np.linspace(0.1, 0.6, 3)
 PARAM_MAP = {
-    "real cohort id + visible features": {
+    "real cohort id": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"]
     },
-    "clustered cohort id + visible features": {
+    "visible-clustered cohort id": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
         "cohort_feats": ["user_f0", "user_f1"],
         "use_cohort_resp": False,
     },
-    "response-clustered cohort id + visible features": {
+    "response-clustered cohort id": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
         "cohort_feats": ["user_f0", "user_f1"],
         "use_cohort_resp": True,
