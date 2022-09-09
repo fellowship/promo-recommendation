@@ -20,7 +20,7 @@ from routine.training import cv_by_id
 PARAM_DATA = {
     "num_users": 1000,
     "num_campaigns": 100,
-    "samples_per_campaign": 10000,
+    "samples_per_campaign": 2000,
     "num_cohort": 10,
     "fh_cohort": True,
     "even_cohort": True,
@@ -36,7 +36,7 @@ PARAM_XGB = {
     "use_label_encoder": False,
 }
 PARAM_NROUND = 30
-PARAM_VAR = np.linspace(0.1, 0.6, 3)
+PARAM_VAR = np.linspace(0.1, 0.6, 6)
 PARAM_MAP = {
     "real cohort id": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"]
@@ -105,9 +105,9 @@ result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
 ord_map = {
     "scores": [
         "visible features",
-        "visible-clustered cohort id + vf",
-        "response-clustered cohort id + vf",
-        "real cohort id + vf",
+        "visible-clustered cohort id",
+        "response-clustered cohort id",
+        "real cohort id",
         "all features",
     ],
     "cohort_mi": [
