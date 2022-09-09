@@ -8,14 +8,14 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 import numpy as np
 import pandas as pd
 import plotly.express as px
+from plotly.express.colors import qualitative
 from sklearn.metrics import normalized_mutual_info_score
 from tqdm.auto import tqdm
 
 from routine.data_generation import generate_data
 from routine.models import CohortXGB
-from routine.training import cv_by_id
 from routine.plotting import scatter_3d
-from plotly.express.colors import qualitative
+from routine.training import cv_by_id
 
 PARAM_DATA = {
     "num_users": 1000,
@@ -102,16 +102,37 @@ result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 
 #%% plot result
 result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
-for yvar in ["scores", "cohort_mi"]:
-    fig = px.box(
-        result,
-        x="cohort_variance",
-        y=yvar,
-        color="feats",
-        facet_row="split_by",
-        labels={"scores": "CV Score", "cohort_variance": "Visible Feature Variance"},
-    )
-    fig.write_html(os.path.join(FIG_PATH, "{}.html".format(yvar)))
+ord_map = {
+    "scores": [
+        "visible features",
+        "visible-clustered cohort id + vf",
+        "response-clustered cohort id + vf",
+        "real cohort id + vf",
+        "all features",
+    ],
+    "cohort_mi": [
+        "visible-clustered cohort id + vf",
+        "response-clustered cohort id + vf",
+    ],
+}
+for splt, subdf in result.replace(
+    {"camp_id": "Seen Users", "user_id": "New Users"}
+).groupby("split_by"):
+    for yvar in ["scores", "cohort_mi"]:
+        fig = px.box(
+            subdf[subdf[yvar].notnull()],
+            x="cohort_variance",
+            y=yvar,
+            color="feats",
+            labels={
+                "scores": "CV Score",
+                "cohort_variance": "Visible Feature Variance",
+            },
+            category_orders={"feats": ord_map[yvar]},
+            title=splt,
+        )
+        fig.update_layout(legend={"title": None})
+        fig.write_html(os.path.join(FIG_PATH, "{}-{}.html".format(splt, yvar)))
 
 #%% case study of cohort accuracy
 def plot_users(df, cmap, z="user_fh", col="cohort"):
