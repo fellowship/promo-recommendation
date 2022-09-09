@@ -42,9 +42,13 @@ def sample_means(n_points, n_dim, method="auto"):
         return eigmap_eqdist(n_points, n_dim)
 
 
-def sample_cohort(cohort, variances, n_features):
+def sample_cohort(cohort, variances, n_features, means):
     cohort = np.array(cohort)
     n_cohort = len(np.unique(cohort))
+    if means is not None:
+        assert means.ndim == 2
+        assert means.shape[0] == n_cohort
+        assert means.shape[1] == n_features
     if np.isscalar(variances):
         variances = np.full((n_cohort, n_features), variances)
     elif variances.ndim == 1:
@@ -62,7 +66,8 @@ def sample_cohort(cohort, variances, n_features):
             and variances.shape[0] == n_cohort
             and variances.shape[1] == n_features
         ), "Cannot interpret variances, 2d array must has shape (n_cohort, n_features)"
-    means = sample_means(n_cohort, n_features)
+    if means is None:
+        means = sample_means(n_cohort, n_features)
     means = means[cohort, :]
     variances = variances[cohort, :]
     smps = np.random.normal(loc=means, scale=variances)
@@ -91,6 +96,7 @@ def generate_data(
     samples_per_campaign,
     num_cohort,
     cohort_variances,
+    cohort_means=None,
     fh_cohort=True,
     response_sig_a=10,
     even_cohort=True,
@@ -119,7 +125,9 @@ def generate_data(
         )
         # generate feature vector for each user
         if fh_cohort:
-            feats, means = sample_cohort(user_df["cohort"], cohort_variances, 3)
+            feats, means = sample_cohort(
+                user_df["cohort"], cohort_variances, 3, cohort_means
+            )
             user_df = user_df.assign(
                 **{
                     "user_f0": feats[:, 0],
@@ -133,8 +141,11 @@ def generate_data(
                 var_fh = cohort_variances[2]
             else:
                 var_vis, var_fh = cohort_variances, cohort_variances
-            feats, _ = sample_cohort(user_df["cohort"], var_vis, 2)
-            fh, _ = sample_cohort(user_df["cohort"], var_fh, 1)
+            if cohort_means is not None:
+                assert cohort_means.ndim == 2 and cohort_means.shape[1] == 3
+                mean_vis, mean_fh = cohort_means[:, :2], cohort_means[:, :2]
+            feats, _ = sample_cohort(user_df["cohort"], var_vis, 2, mean_vis)
+            fh, _ = sample_cohort(user_df["cohort"], var_fh, 1, mean_fh)
             np.random.shuffle(fh)
             feats = np.concatenate([feats, fh], axis=1)
             user_df = user_df.assign(
