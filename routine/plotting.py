@@ -91,10 +91,11 @@ def scatter_3d(
                 )
                 if show_leg:
                     show_legend[llab] = False
+                fig.add_trace(trace, row=ir + 1, col=ic + 1)
         else:
             cur_args = transform_arguments(facet_df, kwargs)
             trace = go.Scatter3d(showlegend=False, **cur_args)
-        fig.add_trace(trace, row=ir + 1, col=ic + 1)
+            fig.add_trace(trace, row=ir + 1, col=ic + 1)
     return fig
 
 
