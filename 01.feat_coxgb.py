@@ -20,7 +20,7 @@ from routine.training import cv_by_id
 PARAM_DATA = {
     "num_users": 1000,
     "num_campaigns": 100,
-    "samples_per_campaign": 10000,
+    "samples_per_campaign": 2000,
     "num_cohort": 10,
     "fh_cohort": True,
     "even_cohort": True,
@@ -36,7 +36,7 @@ PARAM_XGB = {
     "use_label_encoder": False,
 }
 PARAM_NROUND = 30
-PARAM_VAR = np.linspace(0.1, 0.6, 3)
+PARAM_VAR = np.linspace(0.1, 0.6, 6)
 PARAM_MAP = {
     "real cohort id": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"]
@@ -105,9 +105,9 @@ result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
 ord_map = {
     "scores": [
         "visible features",
-        "visible-clustered cohort id + vf",
-        "response-clustered cohort id + vf",
-        "real cohort id + vf",
+        "visible-clustered cohort id",
+        "response-clustered cohort id",
+        "real cohort id",
         "all features",
     ],
     "cohort_mi": [
@@ -127,11 +127,12 @@ for splt, subdf in result.replace(
             labels={
                 "scores": "CV Score",
                 "cohort_variance": "Visible Feature Variance",
+                "cohort_mi": "Mutual information with<br>real cohort ID",
             },
             category_orders={"feats": ord_map[yvar]},
             title=splt,
         )
-        fig.update_layout(legend={"title": None})
+        fig.update_layout(legend={"title": None}, **PARAM_FONT_SZ)
         fig.write_html(os.path.join(FIG_PATH, "{}-{}.html".format(splt, yvar)))
 
 #%% case study of cohort accuracy
@@ -197,6 +198,7 @@ ax_title_resp = {
     "yaxis_title": "Feature 2",
     "zaxis_title": "Response",
 }
+margin = {"t": 50, "b": 0}
 cmap_real = {0: qualitative.Plotly[0], 1: qualitative.Plotly[1]}
 cmap_prd = {0: qualitative.Plotly[2], 1: qualitative.Plotly[3]}
 data_df = []
@@ -224,9 +226,10 @@ user_df = pd.concat(user_df, ignore_index=True)
 fig_user = plot_users(user_df, cmap_real)
 fig_user.update_layout(
     legend={"title": "Cohort", "itemsizing": "constant"},
-    title="Real Cohorts",
+    title={"text": "Real Cohorts", "x": 0.5, "xanchor": "center"},
     scene=ax_title_feat,
     scene2=ax_title_feat,
+    margin=margin,
     **PARAM_FONT_SZ,
 )
 fig_user.write_html(os.path.join(FIG_PATH, "user_real_cohort.html"))
@@ -234,9 +237,10 @@ fig_user.write_html(os.path.join(FIG_PATH, "user_real_cohort.html"))
 fig_cluster = plot_users(data_df, cmap_prd, col="cohort_cluster")
 fig_cluster.update_layout(
     legend={"title": "Predicted Cohort", "itemsizing": "constant"},
-    title="Visible Clustered Cohorts",
+    title={"text": "Visible Clustered Cohorts", "x": 0.5, "xanchor": "center"},
     scene=ax_title_feat,
     scene2=ax_title_feat,
+    margin=margin,
     **PARAM_FONT_SZ,
 )
 fig_cluster.write_html(os.path.join(FIG_PATH, "cluster_cohort.html"))
@@ -244,9 +248,10 @@ fig_cluster.write_html(os.path.join(FIG_PATH, "cluster_cohort.html"))
 fig_resp = plot_users(data_df, cmap_real, z="response", col="cohort")
 fig_resp.update_layout(
     legend={"title": "Cohort", "itemsizing": "constant"},
-    title="Augmented Space",
+    title={"text": "Augmented Space", "x": 0.5, "xanchor": "center"},
     scene=ax_title_resp,
     scene2=ax_title_resp,
+    margin=margin,
     **PARAM_FONT_SZ,
 )
 fig_resp.write_html(os.path.join(FIG_PATH, "resp_cohort.html"))
@@ -254,9 +259,10 @@ fig_resp.write_html(os.path.join(FIG_PATH, "resp_cohort.html"))
 fig_prd = plot_users(data_df, cmap_prd, col="cohort_resp")
 fig_prd.update_layout(
     legend={"title": "Predicted Cohort", "itemsizing": "constant"},
-    title="Response Clustered Cohorts",
+    title={"text": "Response Clustered Cohorts", "x": 0.5, "xanchor": "center"},
     scene=ax_title_resp,
     scene2=ax_title_resp,
+    margin=margin,
     **PARAM_FONT_SZ,
 )
 fig_prd.write_html(os.path.join(FIG_PATH, "prd_cohort.html"))

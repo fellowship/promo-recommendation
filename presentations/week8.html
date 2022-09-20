@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>reveal.js</title>
+
+    <link rel="stylesheet" href="dist/reset.css" />
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="dist/theme/white.css" />
+    <link rel="stylesheet" href="dist/custom.css" />
+    <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h1 class="slide_title">Promo Recommendation Demo</h1>
+          <h1 class="slide_subtitle">Week8 9/05-9/09</h1>
+        </section>
+        <section>
+          <h1 class="slide_heading">Progress</h1>
+          <ul>
+            <li>Explored a new clustering approach to predict cohort ID.</li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_heading">Previous findings</h1>
+          <ul class="fragmented-lists" style="width: 1200px">
+            <li>
+              When variance is high, having information about cohort ID can
+              improve performance.
+            </li>
+            <li>
+              Specifically, when hidden feature variance is small, and visible
+              feature variance is large, cohort ID provides the largest
+              improvement.
+            </li>
+            <li>
+              It's hard to predict cohort ID using simple clustering approaches.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Simple clustering cannot predict cohort ID
+          </h1>
+          <embed
+            src="../figs/feat_coxgb/user_real_cohort.html"
+            width="1200px"
+            height="530px"
+            style="margin-top: -30px"
+          />
+          <embed
+            class="fragment"
+            src="../figs/feat_coxgb/cluster_cohort.html"
+            width="1500px"
+            height="530px"
+            style="margin-top: -30px"
+          />
+        </section>
+        <section>
+          <h1 class="slide_heading">Clustering in augmented space</h1>
+          <embed
+            src="../figs/feat_coxgb/resp_cohort.html"
+            width="1200px"
+            height="530px"
+            style="margin-top: -30px"
+          />
+          <embed
+            class="fragment"
+            src="../figs/feat_coxgb/prd_cohort.html"
+            width="1500px"
+            height="530px"
+            style="margin-top: -30px"
+          />
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Clustering accuracy is improved for seen users
+          </h1>
+          <embed
+            src="../figs/feat_coxgb/Seen Users-cohort_mi.html"
+            width="1300px"
+            height="500px"
+          />
+          <embed
+            class="fragment"
+            src="../figs/feat_coxgb/New Users-cohort_mi.html"
+            width="1300px"
+            height="500px"
+          />
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Prediction accuracy is improved for seen users
+          </h1>
+          <embed
+            src="../figs/feat_coxgb/Seen Users-scores.html"
+            width="1800px"
+            height="500px"
+          />
+          <embed
+            src="../figs/feat_coxgb/New Users-scores.html"
+            width="1800px"
+            height="500px"
+          />
+        </section>
+        <section>
+          <h1 class="slide_heading">Plan for next week</h1>
+          <ul>
+            <li>Explore amount of data needed for performance gain</li>
+            <li>Write up summary</li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_title">Thank you!</h1>
+        </section>
+      </div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script src="plugin/math/math.js"></script>
+    <script src="plugin/spotlight/spotlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        width: 1920,
+        height: 1080,
+        slideNumber: "c/t",
+        autoPlayMedia: true,
+
+        spotlight: {
+          size: 120,
+          presentingCursor: "crosshair",
+          initialPresentationMode: false,
+        },
+        keyboard: {
+          // enter/leave spotlight presentation mode by pressing key 'c'
+          67: function () {
+            RevealSpotlight.togglePresentationMode();
+          },
+        },
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealNotes,
+          RevealMath,
+          RevealSpotlight,
+        ],
+      });
+      Reveal.configure({ pdfSeparateFragments: false });
+      Reveal.addEventListener("ready", function addFragmentToLists() {
+        for (const listItem of document.querySelectorAll(
+          ".fragmented-lists li"
+        )) {
+          listItem.classList.add("fragment");
+        }
+      });
+    </script>
+  </body>
+</html>
