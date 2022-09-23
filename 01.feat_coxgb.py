@@ -29,26 +29,38 @@ PARAM_DATA = {
     "magnify_hf": 1,
 }
 PARAM_XGB = {
-    "max_depth": 5,
+    "max_depth": 6,
     "learning_rate": 1,
     "objective": "binary:logistic",
     "eval_metric": "logloss",
     "use_label_encoder": False,
 }
 PARAM_NROUND = 30
-PARAM_VAR = np.linspace(0.1, 0.6, 6)
+PARAM_VAR = np.linspace(0.1, 1.0, 5)
 PARAM_MAP = {
+    "raw response - double campaign": {
+        "feats": ["user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
+        "user_feats": ["user_f0", "user_f1"],
+        "use_raw_resp": True,
+    },
+    "raw response": {
+        "feats": ["user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
+        "user_feats": ["user_f0", "user_f1"],
+        "use_raw_resp": True,
+    },
     "real cohort id": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"]
     },
     "visible-clustered cohort id": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
         "cohort_feats": ["user_f0", "user_f1"],
+        "user_feats": ["user_f0", "user_f1"],
         "use_cohort_resp": False,
     },
     "response-clustered cohort id": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
         "cohort_feats": ["user_f0", "user_f1"],
+        "user_feats": ["user_f0", "user_f1"],
         "use_cohort_resp": True,
     },
     "visible features": {
@@ -58,7 +70,7 @@ PARAM_MAP = {
         "feats": ["user_f0", "user_f1", "user_fh", "camp_f0", "camp_f1", "camp_fh"]
     },
 }
-PARAM_NTRAIN = 20
+PARAM_NTRAIN = 10
 PARAM_FONT_SZ = {"font_size": 16, "title_font_size": 24, "legend_title_font_size": 24}
 PARAM_CV = 5
 PARAM_SPLT_BY = ["camp_id", "user_id"]
@@ -73,7 +85,10 @@ for cvar, pkey, splt_by, itrain in tqdm(
     list(itt.product(PARAM_VAR, PARAM_MAP.keys(), PARAM_SPLT_BY, range(PARAM_NTRAIN)))
 ):
     cohort_var = np.array([cvar, cvar, 0.1])
-    data, _, _ = generate_data(cohort_variances=cohort_var, **PARAM_DATA)
+    cur_param_data = PARAM_DATA.copy()
+    if pkey == "raw response - double campaign":
+        cur_param_data["num_campaigns"] = cur_param_data["num_campaigns"] * 2
+    data, _, _ = generate_data(cohort_variances=cohort_var, **cur_param_data)
     cur_param = PARAM_MAP[pkey]
     scores, cohort_mi = np.full(PARAM_CV, np.nan), np.full(PARAM_CV, np.nan)
     for icv, (data_train, data_test) in enumerate(cv_by_id(data, PARAM_CV, splt_by)):
@@ -104,8 +119,9 @@ result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
 ord_map = {
     "scores": [
+        "raw response",
+        "raw response - double campaign",
         "visible features",
-        "visible-clustered cohort id",
         "response-clustered cohort id",
         "real cohort id",
         "all features",
@@ -119,8 +135,9 @@ for splt, subdf in result.replace(
     {"camp_id": "Seen Users", "user_id": "New Users"}
 ).groupby("split_by"):
     for yvar in ["scores", "cohort_mi"]:
+        cat_ord = ord_map[yvar]
         fig = px.box(
-            subdf[subdf[yvar].notnull()],
+            subdf[(subdf[yvar].notnull()) & (subdf["feats"].isin(cat_ord))],
             x="cohort_variance",
             y=yvar,
             color="feats",
@@ -129,7 +146,7 @@ for splt, subdf in result.replace(
                 "cohort_variance": "Visible Feature Variance",
                 "cohort_mi": "Mutual information with<br>real cohort ID",
             },
-            category_orders={"feats": ord_map[yvar]},
+            category_orders={"feats": cat_ord},
             title=splt,
         )
         fig.update_layout(legend={"title": None}, **PARAM_FONT_SZ)
@@ -171,6 +188,7 @@ param_model = {
     "n_cohort": 2,
     "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
     "cohort_feats": ["user_f0", "user_f1"],
+    "user_feats": ["user_f0", "user_f1"],
     "max_depth": 5,
     "learning_rate": 1,
     "objective": "binary:logistic",
