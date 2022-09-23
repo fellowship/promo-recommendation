@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>reveal.js</title>
+
+    <link rel="stylesheet" href="dist/reset.css" />
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="dist/theme/white.css" />
+    <link rel="stylesheet" href="dist/custom.css" />
+    <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h1 class="slide_title">Promo Recommendation Demo</h1>
+          <h1 class="slide_subtitle">Week9 9/19-9/23</h1>
+        </section>
+        <section>
+          <h1 class="slide_heading">Progress</h1>
+          <ul>
+            <li>Explored training XGBoost with raw campaign response.</li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_heading">Current clustering approach</h1>
+          <div class="r-stack">
+            <object data="imgs/model_data.svg" width="1500px"></object>
+            <object
+              data="imgs/model_cluster0.svg"
+              width="1500px"
+              class="fragment"
+            ></object>
+            <object
+              data="imgs/model_cluster1.svg"
+              width="1500px"
+              class="fragment"
+            ></object>
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">Fitting with response</h1>
+          <div class="r-stack">
+            <object data="imgs/model_data.svg" width="1500px"></object>
+            <object
+              data="imgs/model_response0.svg"
+              width="1500px"
+              class="fragment"
+            ></object>
+            <object
+              data="imgs/model_response1.svg"
+              width="1500px"
+              class="fragment"
+            ></object>
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Performance of fitting with raw response
+          </h1>
+          <div class="row">
+            <object
+              data="../figs/feat_coxgb/Seen Users-scores.html"
+              width="1500px"
+              height="850px"
+            ></object>
+            <ul class="fragment" style="width: 600px">
+              <li>
+                Fitting with raw response seem to produce worse accuracy than
+                visible features.
+              </li>
+              <li>Doubling the training data seem to rescue the accuracy.</li>
+            </ul>
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">Training vs. Testing</h1>
+          <div class="row">
+            <object
+              data="../figs/raw_coxgb/scores.html"
+              width="1200px"
+              height="800px"
+            ></object>
+            <ul class="fragment" style="width: 700px">
+              <li>
+                Decrease in accuracy doesn't seem to be due to over-fitting.
+              </li>
+            </ul>
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">Plan for future</h1>
+          <ul>
+            <li>Summary results and write up a blog post.</li>
+            <li>
+              Explore why clustering responses can improve accuracy from
+              theoretical aspect.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_title">Thank you!</h1>
+        </section>
+      </div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script src="plugin/math/math.js"></script>
+    <script src="plugin/spotlight/spotlight.js"></script>
+    <script src="plugin/animate/plugin.js"></script>
+    <script src="plugin/animate/svg.min.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        width: 1920,
+        height: 1080,
+        slideNumber: "c/t",
+        autoPlayMedia: true,
+
+        spotlight: {
+          size: 120,
+          presentingCursor: "crosshair",
+          initialPresentationMode: false,
+        },
+        keyboard: {
+          // enter/leave spotlight presentation mode by pressing key 'c'
+          67: function () {
+            RevealSpotlight.togglePresentationMode();
+          },
+        },
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealNotes,
+          RevealMath,
+          RevealSpotlight,
+          RevealAnimate,
+        ],
+      });
+      Reveal.configure({ pdfSeparateFragments: false });
+      Reveal.addEventListener("ready", function addFragmentToLists() {
+        for (const listItem of document.querySelectorAll(
+          ".fragmented-lists li"
+        )) {
+          listItem.classList.add("fragment");
+        }
+      });
+    </script>
+  </body>
+</html>
