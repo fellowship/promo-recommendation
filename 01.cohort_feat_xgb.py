@@ -89,4 +89,4 @@ fig.update_layout(
     yaxis_title="CV Score",
     **PARAM_FONT_SZ
 )
-fig.write_html(os.path.join(FIG_PATH, "scores.html"))
+fig.write_html(os.path.join(FIG_PATH, "New Users-cohort_mi.html"))

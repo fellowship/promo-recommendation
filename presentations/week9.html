@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>reveal.js</title>
+
+    <link rel="stylesheet" href="dist/reset.css" />
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="dist/theme/white.css" />
+    <link rel="stylesheet" href="dist/custom.css" />
+    <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h1 class="slide_title">Promo Recommendation Demo</h1>
+          <h1 class="slide_subtitle">Week9 9/12-9/16</h1>
+        </section>
+        <section>
+          <h1 class="slide_heading">Previous findings</h1>
+          <ul class="fragmented-lists" style="width: 1200px">
+            <li>
+              The inclusion of real cohort IDs into the training improves the prediction accuracy.
+            </li>
+            <li>
+              It is hard to predict cohort ID using simple clustering approaches.
+            </li>
+            <li>
+              Response-clustering algorithm is able to predict the cohort IDs with improved accuracy.
+            </li>
+            <li>
+              Prediction accuracy for seen users was observed to be improved.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_heading">Progress</h1>
+          <ul>
+            <li>Explored the notion of how fast the model can be trained for better prediction accuracy.</li>
+            <li>Analysed the prediction accuracy after incorporating the information from user responses in the training process.</li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Question: How fast the model is able to reach asymptotic prediction accuracy?
+          </h1>
+        </section>
+        <section data-auto-animate>
+          <h1 class="slide_heading">
+            Learning rate story
+          </h1>
+          <div class="row">
+            <embed
+              src="../figs/user_online/by_feats/score_user.html"
+              width="1400px"
+              height="900px"
+              data-id="svalid"
+            />
+            <div>
+              <ul class="fragment" style="width: 600px">
+                <li>Every user is seen only once in each campaign.</li>
+                <li>
+                  Faster learning rate when sampled randomly (better sampling of the campaign space from the start).
+                </li>
+                <li>With increasing variance, response clustered cohort ID performs the best.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Question: What is the model prediction accuracy when the reduced-user responses are added as extra features during training?
+          </h1>
+        </section>
+        <section data-auto-animate>
+          <h1 class="slide_heading">
+            PCA of the responses
+          </h1>
+          <div class="row">
+            <embed
+              src="../figs/data/fig_df.html"
+              width="1400px"
+              height="900px"
+              data-id="svalid"
+            />
+            <embed
+              src="../figs/data/fig_SIG.html"
+              width="1400px"
+              height="900px"
+              data-id="svalid"
+            />
+<!--            <div>-->
+<!--              <ul class="fragment" style="width: 600px">-->
+<!--                <li>PCA is performed on the user-campaign response matrix.</li>-->
+<!--                <li>-->
+<!--                  First three PCA components chosen as extra features for training.-->
+<!--                </li>-->
+<!--              </ul>-->
+<!--            </div>-->
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">
+            Score plot for the dimension-reduced response included model
+          </h1>
+          <div class="col">
+            <embed
+              src="../figs/user_resp/by_score/score_user.html"
+              width="1800px"
+              height="500px"
+            />
+          </div>
+        </section>
+        <section>
+          <h1 class="slide_heading">Findings</h1>
+          <ul>
+            <li>It is safe to say that using reduced-user response as features gives comparable performance to response-clustering approach.</li>
+            <li>However, the response-clustering algorithm bags on its interpretability. </li>
+            <li>The algorithm is not auto regressive as each campaign vector is randomly and independently drawn.</li>
+            <li>With increasing campaigns the reduced-user response method might become computationally demanding</li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_heading">Plan for next week</h1>
+          <ul>
+            <li>Recapitulating the findings</li>
+            <li>Preparing blog post</li>
+          </ul>
+        </section>
+        <section>
+          <h1 class="slide_title">Thank you!</h1>
+        </section>
+      </div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script src="plugin/math/math.js"></script>
+    <script src="plugin/spotlight/spotlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        width: 1920,
+        height: 1080,
+        slideNumber: "c/t",
+        autoPlayMedia: true,
+
+        spotlight: {
+          size: 120,
+          presentingCursor: "crosshair",
+          initialPresentationMode: false,
+        },
+        keyboard: {
+          // enter/leave spotlight presentation mode by pressing key 'c'
+          67: function () {
+            RevealSpotlight.togglePresentationMode();
+          },
+        },
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealNotes,
+          RevealMath,
+          RevealSpotlight,
+        ],
+      });
+      Reveal.configure({ pdfSeparateFragments: false });
+    </script>
+  </body>
+</html>

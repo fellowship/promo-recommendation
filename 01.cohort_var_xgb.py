@@ -81,4 +81,4 @@ fig = px.box(
 fig.update_layout(
     legend_title="hidden feature", xaxis_title="Cohort Variance", yaxis_title="CV Score"
 )
-fig.write_html(os.path.join(FIG_PATH, "scores.html"))
+fig.write_html(os.path.join(FIG_PATH, "New Users-cohort_mi.html"))

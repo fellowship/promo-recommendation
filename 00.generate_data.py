@@ -1,10 +1,17 @@
-#%% imports and definitions
+# %% imports and definitions
 import os
 
 import plotly.express as px
-
+from plotly.subplots import make_subplots
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import routine.models
 from routine.data_generation import generate_data
 from routine.clustering import Kmeans_cluster
+from routine.models import AddPCA
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
 
 FIG_PATH = "./figs/data"
 PARAM_FONT_SZ = {"font_size": 16, "title_font_size": 24, "legend_title_font_size": 24}
@@ -15,19 +22,72 @@ def agg_freq(df):
     return (df["response"] == 1).sum() / len(df)
 
 
-#%% generate data
+# %% generate data
 obs_df, user_df, camp_df = generate_data(
     num_users=1000,
-    num_campaigns=100,
-    samples_per_campaign=10000,
+    num_campaigns=30,
+    samples_per_campaign=1000,
     num_cohort=10,
-    cohort_variances=0.6,
+    cohort_variances=0.05,
     fh_cohort=True,
     response_sig_a=10,
     even_cohort=True,
     cross_weight=None,
     magnify_hf=1,
+    learning_rate_story=True
 )
+#%%
+obs_df, _ = AddPCA(obs_df, 30)
+#%%
+obs_df = obs_df.sort_values(["camp_id", "user_id"])
+resp_ls = np.column_stack([resp["response"] for resp in np.array_split(obs_df, 30)])
+_, S, _ = np.linalg.svd(resp_ls)
+df_SIG = pd.DataFrame({"Modes": np.arange(len(S)), "Percent weight": S / np.sum(S)})
+fig_SIG = px.line(df_SIG, x="Modes", y="Percent weight", title='Singular value decay', markers=True)
+fig_SIG.write_html(os.path.join(FIG_PATH, "fig_SIG.html"))
+#%%
+df_small = obs_df.head()
+fig_df = make_subplots(rows=2, cols=1, specs=[[{"type": "table"}],
+           [{"type": "scatter3D"}]], subplot_titles=("Modified dataframe", "PCA component 1"), row_heights=[0.3, 0.7])
+fig_df.add_trace(go.Table(
+    header=dict(values=list(df_small.columns),
+                fill_color='paleturquoise',
+                align='left'),
+    cells=dict(values=df_small.transpose().values.round(2).tolist(),
+               fill_color='lavender',
+               align='left')
+), row=1, col=1)
+fig_df.add_trace(go.Scatter3d(
+    x=obs_df["user_f0"],
+    y=obs_df["user_f1"],
+    z=obs_df["PCA_1"],
+    mode="markers",
+    marker=dict(
+        size=2,
+        color=obs_df["cohort"]
+    )
+), row=2, col=1)
+fig_df.update_xaxes(title_text="user_f0", row=2, col=1)
+fig_df.update_yaxes(title_text="user_f1", row=2, col=1)
+
+fig_df.write_html(os.path.join(FIG_PATH, "fig_df.html"))
+# %%
+pca_df = obs_df[['cohort', 'user_f0', 'user_f1', 'PCA_1', 'PCA_2', 'PCA_3']].copy()
+fig_PCA = px.scatter_3d(
+    pca_df.astype({"cohort": str}),
+    x="user_f0",
+    y="user_f1",
+    z="PCA_3",
+    color="cohort",
+)
+fig_PCA.update_traces(marker_size=2)
+fig_PCA.update_layout(
+    legend={"itemsizing": "constant"},
+    title="features and PCA component 3",
+    **PARAM_FONT_SZ,
+)
+fig_PCA.write_html(os.path.join(FIG_PATH, "feat_pca_3.html"))
+# %%
 # kmean cluster of cohort
 user_df["cohort_cluster"] = Kmeans_cluster(user_df[["user_f0", "user_f1"]], 10)
 # plot user features colored by real cohort

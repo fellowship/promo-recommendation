@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.impute import KNNImputer
 from xgboost import XGBClassifier
-
+from sklearn.decomposition import PCA
 
 def build_wide_model(
     feature_column_dict,
@@ -399,3 +399,18 @@ class CohortXGB:
     def score(self, df):
         y_prd = self.predict(df)
         return accuracy_score(df[self.resp], y_prd)
+
+
+def AddPCA(df, n_campaigns):
+    df = df.sort_values(["camp_id", "user_id"])
+    resp_ls = np.column_stack([resp["response"] for resp in np.array_split(df, n_campaigns)])
+    pca_resp = PCA(n_components=3).fit_transform(resp_ls)
+
+    user_ids = np.array(df["user_id"].unique())
+    pca_df = pd.DataFrame(
+        {"user_id": user_ids, "PCA_1": pca_resp[:, 0], "PCA_2": pca_resp[:, 1], "PCA_3": pca_resp[:, 2]})
+
+    df = df.merge(pca_df, how="left", on="user_id")
+
+    return df, pca_df
+
