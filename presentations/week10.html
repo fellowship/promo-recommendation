@@ -14,6 +14,12 @@
     <link rel="stylesheet" href="dist/theme/white.css" />
     <link rel="stylesheet" href="dist/custom.css" />
     <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+    <link rel="stylesheet" href="plugin/chalkboard/style.css" />
+    <link rel="stylesheet" href="plugin/customcontrols/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.15.3/css/all.css"
+    />
   </head>
   <body>
     <div class="reveal">
@@ -141,6 +147,8 @@
     <script src="plugin/spotlight/spotlight.js"></script>
     <script src="plugin/animate/plugin.js"></script>
     <script src="plugin/animate/svg.min.js"></script>
+    <script src="plugin/chalkboard/plugin.js"></script>
+    <script src="plugin/customcontrols/plugin.js"></script>
     <script>
       Reveal.initialize({
         hash: true,
@@ -148,6 +156,16 @@
         height: 1080,
         slideNumber: "c/t",
         autoPlayMedia: true,
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealNotes,
+          RevealMath,
+          RevealSpotlight,
+          RevealAnimate,
+          RevealCustomControls,
+          RevealChalkboard,
+        ],
 
         spotlight: {
           size: 120,
@@ -160,14 +178,33 @@
             RevealSpotlight.togglePresentationMode();
           },
         },
-        plugins: [
-          RevealMarkdown,
-          RevealHighlight,
-          RevealNotes,
-          RevealMath,
-          RevealSpotlight,
-          RevealAnimate,
-        ],
+        customcontrols: {
+          controls: [
+            {
+              icon: '<i class="fa fa-pen-square"></i>',
+              title: "Toggle chalkboard (B)",
+              action: "RevealChalkboard.toggleChalkboard();",
+            },
+            {
+              icon: '<i class="fa fa-pen"></i>',
+              title: "Toggle notes canvas (C)",
+              action: "RevealChalkboard.toggleNotesCanvas();",
+            },
+          ],
+        },
+        chalkboard: {
+          boardmarkerWidth: 3,
+          chalkWidth: 7,
+          chalkEffect: 1.0,
+          storage: null,
+          src: null,
+          readOnly: undefined,
+          transition: 800,
+          theme: "chalkboard",
+          background: ["rgba(127,127,127,.1)", path + "img/blackboard.png"],
+          grid: { color: "rgb(50,50,10,0.5)", distance: 80, width: 2 },
+          eraser: { src: path + "img/sponge.png", radius: 20 },
+        },
       });
       Reveal.configure({ pdfSeparateFragments: false });
       Reveal.addEventListener("ready", function addFragmentToLists() {
