@@ -105,6 +105,7 @@ def generate_data(
     magnify_hf=1,
     user_df=None,
     camp_df=None,
+    perfect_camp=False,
 ):
     # get number of samples
     nsample = num_campaigns * samples_per_campaign
@@ -168,11 +169,20 @@ def generate_data(
             **{"camp_f0": feats[:, 0], "camp_f1": feats[:, 1], "camp_fh": feats[:, 2]}
         )
     # build observations
-    user_ids = np.repeat(np.array(user_df["user_id"]), np.array(user_df["freq"]))
-    camp_ids = np.repeat(np.array(camp_df["camp_id"]), np.array(camp_df["freq"]))
-    np.random.shuffle(user_ids)
-    np.random.shuffle(camp_ids)
-    obs_df = pd.DataFrame({"user_id": user_ids, "camp_id": camp_ids})
+    if perfect_camp:
+        user_ids = np.tile(np.array(user_df["user_id"]), num_campaigns)
+        camp_ids = np.repeat(np.array(camp_df["camp_id"]), num_users)
+        obs_df = (
+            pd.DataFrame({"user_id": user_ids, "camp_id": camp_ids})
+            .sample(frac=1)
+            .reset_index(drop=True)
+        )
+    else:
+        user_ids = np.repeat(np.array(user_df["user_id"]), np.array(user_df["freq"]))
+        camp_ids = np.repeat(np.array(camp_df["camp_id"]), np.array(camp_df["freq"]))
+        np.random.shuffle(user_ids)
+        np.random.shuffle(camp_ids)
+        obs_df = pd.DataFrame({"user_id": user_ids, "camp_id": camp_ids})
     obs_df = obs_df.merge(user_df.drop(columns="freq"), how="left", on="user_id")
     obs_df = obs_df.merge(camp_df.drop(columns="freq"), how="left", on="camp_id")
     if cross_weight is not None:
