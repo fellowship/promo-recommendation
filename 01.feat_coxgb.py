@@ -19,30 +19,26 @@ from routine.training import cv_by_id
 
 PARAM_DATA = {
     "num_users": 1000,
-    "num_campaigns": 100,
-    "samples_per_campaign": 2000,
-    "num_cohort": 10,
+    "num_campaigns": 10,
+    "samples_per_campaign": 1000,
+    "num_cohort": 40,
     "fh_cohort": True,
     "even_cohort": True,
     "response_sig_a": 10,
     "cross_weight": None,
-    "magnify_hf": 1,
+    "magnify_hf": 2,
+    "perfect_camp": True,
 }
 PARAM_XGB = {
-    "max_depth": 6,
+    "max_depth": 5,
     "learning_rate": 1,
     "objective": "binary:logistic",
     "eval_metric": "logloss",
     "use_label_encoder": False,
 }
 PARAM_NROUND = 30
-PARAM_VAR = np.linspace(0.1, 1.0, 5)
+PARAM_VAR = np.linspace(0.1, 0.9, 3)
 PARAM_MAP = {
-    "raw response - double campaign": {
-        "feats": ["user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
-        "user_feats": ["user_f0", "user_f1"],
-        "use_raw_resp": True,
-    },
     "raw response": {
         "feats": ["user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
         "user_feats": ["user_f0", "user_f1"],
@@ -88,9 +84,15 @@ for cvar, pkey, splt_by, itrain in tqdm(
     cur_param_data = PARAM_DATA.copy()
     if pkey == "raw response - double campaign":
         cur_param_data["num_campaigns"] = cur_param_data["num_campaigns"] * 2
-    data, _, _ = generate_data(cohort_variances=cohort_var, **cur_param_data)
+    data, user_df, camp_df = generate_data(
+        cohort_variances=cohort_var, **cur_param_data
+    )
     cur_param = PARAM_MAP[pkey]
-    scores, cohort_mi = np.full(PARAM_CV, np.nan), np.full(PARAM_CV, np.nan)
+    scores_train, scores_test, cohort_mi = (
+        np.full(PARAM_CV, np.nan),
+        np.full(PARAM_CV, np.nan),
+        np.full(PARAM_CV, np.nan),
+    )
     for icv, (data_train, data_test) in enumerate(cv_by_id(data, PARAM_CV, splt_by)):
         model = CohortXGB(n_cohort=PARAM_DATA["num_cohort"], **cur_param, **PARAM_XGB)
         model.fit(data_train)
@@ -99,7 +101,8 @@ for cvar, pkey, splt_by, itrain in tqdm(
             cohort_mi[icv] = normalized_mutual_info_score(
                 data_test["cohort"], cohort_prd
             )
-        scores[icv] = model.score(data_test)
+        scores_train[icv] = model.score(data_train)
+        scores_test[icv] = model.score(data_test)
     score = pd.DataFrame(
         {
             "cohort_variance": cvar,
@@ -107,7 +110,8 @@ for cvar, pkey, splt_by, itrain in tqdm(
             "itrain": itrain,
             "split_by": splt_by,
             "cv": np.arange(PARAM_CV),
-            "scores": scores,
+            "scores_train": scores_train,
+            "scores_test": scores_test,
             "cohort_mi": cohort_mi,
         }
     )
@@ -118,23 +122,29 @@ result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 #%% plot result
 result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
 ord_map = {
-    "scores": [
-        "raw response",
-        "raw response - double campaign",
+    "scores_train": [
         "visible features",
+        "raw response",
+        "response-clustered cohort id",
+        "real cohort id",
+        "all features",
+    ],
+    "scores_test": [
+        "visible features",
+        "raw response",
         "response-clustered cohort id",
         "real cohort id",
         "all features",
     ],
     "cohort_mi": [
-        "visible-clustered cohort id + vf",
-        "response-clustered cohort id + vf",
+        "visible-clustered cohort id",
+        "response-clustered cohort id",
     ],
 }
 for splt, subdf in result.replace(
     {"camp_id": "Seen Users", "user_id": "New Users"}
 ).groupby("split_by"):
-    for yvar in ["scores", "cohort_mi"]:
+    for yvar in ord_map.keys():
         cat_ord = ord_map[yvar]
         fig = px.box(
             subdf[(subdf[yvar].notnull()) & (subdf["feats"].isin(cat_ord))],
@@ -142,7 +152,8 @@ for splt, subdf in result.replace(
             y=yvar,
             color="feats",
             labels={
-                "scores": "CV Score",
+                "scores_train": "Training Score",
+                "scores_test": "CV Score",
                 "cohort_variance": "Visible Feature Variance",
                 "cohort_mi": "Mutual information with<br>real cohort ID",
             },
