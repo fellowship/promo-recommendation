@@ -347,57 +347,88 @@ class CohortXGB:
         feats,
         resp="response",
         cohort_feats=None,
+        user_feats=None,
         n_neighbors=1,
         use_cohort_resp=False,
+        use_raw_resp=False,
         **kwargs,
     ) -> None:
         self.cluster_model = KMeans(n_clusters=n_cohort)
-        self.cohort_model = KNeighborsClassifier(n_neighbors=n_neighbors)
+        self.user_model = KNeighborsClassifier(n_neighbors=n_neighbors)
         self.xgb_model = XGBClassifier(**kwargs)
         self.use_cohort_resp = use_cohort_resp
+        self.use_raw_resp = use_raw_resp
         self.feats = feats
         self.resp = resp
         self.cohort_feats = cohort_feats
+        self.user_feats = user_feats
 
     def fit(self, df):
-        if self.cohort_feats is not None:
-            cluster_feats = copy(self.cohort_feats)
-            cohort_df = df[self.cohort_feats + ["user_id"]].drop_duplicates()
-            if self.use_cohort_resp:
-                camps = np.sort(df["camp_id"].unique()).tolist()
-                df_agg = (
-                    df.groupby(["user_id", "camp_id"], observed=True)["response"]
-                    .mean()
-                    .reset_index()
-                )
-                df_agg["response"] = np.around(df_agg["response"]).astype(int)
-                resp_df = df_agg.pivot(
-                    index="user_id", columns="camp_id", values="response"
-                ).reset_index()
-                imputer = KNNImputer(n_neighbors=3)
-                resp_df[camps] = imputer.fit_transform(resp_df[camps])
-                cohort_df = cohort_df.merge(resp_df, on="user_id", how="left")
-                cluster_feats += camps
-            cohort_df["cohort"] = self.cluster_model.fit_predict(
-                cohort_df[cluster_feats]
+        # fit KNN user matching model
+        if self.user_feats is not None:
+            self.user_model.fit(df[self.user_feats], df["user_id"])
+        # construct and impute campign responses
+        if self.use_cohort_resp or self.use_raw_resp:
+            camps = np.sort(df["camp_id"].unique()).tolist()
+            df_agg = (
+                df.groupby(["user_id", "camp_id"], observed=True)["response"]
+                .mean()
+                .reset_index()
             )
-            self.cohort_model.fit(cohort_df[self.cohort_feats], cohort_df["cohort"])
+            df_agg["response"] = np.around(df_agg["response"]).astype(int)
+            self.resp_df = (
+                df_agg.pivot(index="user_id", columns="camp_id", values="response")
+                .rename(columns=lambda c: "camp" + str(c))
+                .reset_index()
+            )
+            camps = list(map(lambda c: "camp" + str(c), camps))
+            imputer = KNNImputer(n_neighbors=3)
+            self.resp_df[camps] = imputer.fit_transform(self.resp_df[camps])
+        # clustering cohorts
+        if self.cohort_feats is not None:
+            self.cohort_df = df[self.cohort_feats + ["user_id"]].drop_duplicates()
+            if self.use_cohort_resp:
+                self.cohort_df = self.cohort_df.merge(
+                    self.resp_df, on="user_id", how="left"
+                )
+                self.cohort_feats = self.cohort_feats + camps
+            self.cohort_df["cohort"] = self.cluster_model.fit_predict(
+                self.cohort_df[self.cohort_feats]
+            )
             df["cohort"] = pd.Categorical(
-                cohort_df.set_index("user_id").loc[df["user_id"]]["cohort"],
+                self.cohort_df.set_index("user_id").loc[df["user_id"]]["cohort"],
                 categories=df["cohort"].values.categories,
             )
+        elif self.use_raw_resp:
+            camp_feat, camp_fit = np.array_split(camps, 2)
+            camp_feat = camp_feat.tolist()
+            camp_fit = list(map(lambda c: int(c[4:]), camp_fit))
+            self.resp_df = self.resp_df[camp_feat + ["user_id"]]
+            self.feats = self.feats + camp_feat
+            df = df[df["camp_id"].isin(camp_fit)].merge(self.resp_df, on=["user_id"])
         self.xgb_model.fit(pd.get_dummies(df[self.feats]), df[self.resp])
+
+    def predict_user(self, df):
+        assert self.user_feats is not None
+        return self.user_model.predict(df[self.user_feats])
 
     def predict_cohort(self, df):
         assert self.cohort_feats is not None
+        uid = self.predict_user(df)
         return pd.Categorical(
-            self.cohort_model.predict(df[self.cohort_feats]),
+            self.cohort_df.set_index("user_id").loc[uid]["cohort"],
             categories=df["cohort"].values.categories,
         )
+
+    def predict_resp(self, df):
+        uid = self.predict_user(df)
+        return self.resp_df.set_index("user_id").loc[uid].reset_index(drop=True)
 
     def predict(self, df):
         if self.cohort_feats is not None:
             df["cohort"] = self.predict_cohort(df)
+        if self.use_raw_resp:
+            df = pd.concat([df.reset_index(), self.predict_resp(df)], axis="columns")
         return self.xgb_model.predict(pd.get_dummies(df[self.feats]))
 
     def score(self, df):
