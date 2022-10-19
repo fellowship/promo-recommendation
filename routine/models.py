@@ -431,6 +431,19 @@ class CohortXGB:
             df = pd.concat([df.reset_index(), self.predict_resp(df)], axis="columns")
         return self.xgb_model.predict(pd.get_dummies(df[self.feats]))
 
+    def fit_xgb(self, df, warm_start=False):
+        if self.cohort_feats is not None:
+            df["cohort"] = self.predict_cohort(df)
+        if self.use_raw_resp:
+            df = pd.concat([df.reset_index(), self.predict_resp(df)], axis="columns")
+        if warm_start:
+            prev_model = self.xgb_model.get_booster()
+        else:
+            prev_model = None
+        self.xgb_model.fit(
+            pd.get_dummies(df[self.feats]), df[self.resp], xgb_model=prev_model
+        )
+
     def score(self, df):
         y_prd = self.predict(df)
         return accuracy_score(df[self.resp], y_prd)
