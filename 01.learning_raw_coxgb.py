@@ -7,15 +7,11 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
-from plotly.express.colors import qualitative
-from sklearn.metrics import normalized_mutual_info_score
 from tqdm.auto import tqdm
 
 from routine.data_generation import generate_data
 from routine.models import CohortXGB
 from routine.plotting import line
-from routine.training import cv_by_id
 
 PARAM_DATA = {
     "num_users": 1000,
@@ -73,8 +69,6 @@ result_ls = []
 for cvar, pkey, itrain in tqdm(
     list(itt.product(PARAM_VAR, PARAM_MAP.keys(), range(PARAM_NTRAIN)))
 ):
-    if pkey != "response-clustered cohort id":
-        continue
     cohort_var = np.array([cvar, cvar, 0.1])
     data, user_df, camp_df = generate_data(cohort_variances=cohort_var, **PARAM_DATA)
     user_df_new = user_df.copy()
@@ -105,9 +99,8 @@ for cvar, pkey, itrain in tqdm(
         }
     )
     result_ls.append(score)
-    break
-# result = pd.concat(result_ls, ignore_index=True)
-# result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
+result = pd.concat(result_ls, ignore_index=True)
+result.to_csv(os.path.join(OUT_RESULT_PATH, "result.csv"), index=False)
 
 #%% plot result
 result = pd.read_csv(os.path.join(OUT_RESULT_PATH, "result.csv"))
