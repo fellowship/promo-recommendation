@@ -34,7 +34,7 @@ PARAM_XGB = {
 }
 PARAM_NROUND = 30
 PARAM_VAR = np.linspace(0.05, 0.6, 12)
-PARAM_COHORT = ["cohort id", "numerical features", "cohort id + numerical features"]
+PARAM_COHORT = ["real cohort id", "visible features", "real cohort id + visible features"]
 PARAM_NTRAIN = 10
 PARAM_FONT_SZ = {"font_size": 16, "title_font_size": 24, "legend_title_font_size": 24}
 OUT_RESULT_PATH = "./intermediate/cohort_feat_xgb"
@@ -48,14 +48,14 @@ for cvar, cs, itrain in tqdm(
     list(itt.product(PARAM_VAR, PARAM_COHORT, range(PARAM_NTRAIN)))
 ):
     data, user_df, camp_df = generate_data(cohort_variances=cvar, **PARAM_DATA)
-    if cs == "cohort id":
-        feat_cols = ["cohort", "camp_f0", "camp_f1"]
+    if cs == "real cohort id":
+        feat_cols = ["cohort", "camp_f0", "camp_f1", "camp_fh"]
         data_modified = pd.get_dummies(data[feat_cols], columns=["cohort"])
-    elif cs == "numerical features":
-        feat_cols = ["user_f0", "user_f1", "camp_f0", "camp_f1"]
+    elif cs == "visible features":
+        feat_cols = ["user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"]
         data_modified = data[feat_cols]
-    elif cs == "cohort id + numerical features":
-        feat_cols = ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1"]
+    elif cs == "real cohort id + visible features":
+        feat_cols = ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"]
         data_modified = pd.get_dummies(data[feat_cols], columns=["cohort"])
     model = XGBClassifier(n_estimators=PARAM_NROUND, **PARAM_XGB)
     score = cross_validate(model, data_modified, data["response"])["test_score"]
@@ -80,7 +80,7 @@ fig = px.box(
     y="score",
     color="cs",
     category_orders={
-        "cs": ["cohort id", "numerical features", "cohort id + numerical features"]
+        "cs": ["real cohort id", "visible features", "real cohort id + visible features"]
     },
 )
 fig.update_layout(
@@ -89,4 +89,5 @@ fig.update_layout(
     yaxis_title="CV Score",
     **PARAM_FONT_SZ
 )
-fig.write_html(os.path.join(FIG_PATH, "New Users-cohort_mi.html"))
+fig.write_html(os.path.join(FIG_PATH, "scores.html"))
+fig.write_image(os.path.join(FIG_PATH, "scores.png"), width=1500, height=800, scale=1)

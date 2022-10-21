@@ -16,14 +16,15 @@ import plotly.express as px
 
 PARAM_DATA = {
     "num_users": 1000,
-    "num_campaigns": 30,
-    "samples_per_campaign": 1000,
+    "num_campaigns": 100,
+    "samples_per_campaign": 10000,
     "num_cohort": 10,
     "fh_cohort": True,
     "even_cohort": True,
     "response_sig_a": 10,
     "cross_weight": None,
     "magnify_hf": 1,
+    "learning_rate_story": True
 }
 PARAM_XGB = {
     "max_depth": 5,
@@ -33,7 +34,7 @@ PARAM_XGB = {
     "use_label_encoder": False,
 }
 PARAM_NROUND = 30
-PARAM_VAR = np.linspace(0.1, 0.6, 3)
+PARAM_VAR = np.linspace(0.1, 1.0, 3)
 PARAM_SAMP = ["random", "by_camp"]
 PARAM_MAP = {
     "real cohort id + visible features": {
@@ -70,7 +71,7 @@ for cvar, pkey, samp, itrain in tqdm(
 ):
     # Training data
     data_train, user_df, camp_df = generate_data(
-        cohort_variances=cvar, learning_rate_story=True, **PARAM_DATA
+        cohort_variances=cvar, **PARAM_DATA
     )
     # Validating against seen users and seen campaigns
     data_valid, _, _ = generate_data(

@@ -414,3 +414,39 @@ def AddPCA(df, n_campaigns):
 
     return df, pca_df
 
+
+def response_cluster(df, cohort_feats, n_cohort, n_neighbors=1):
+    cluster_model = KMeans(n_clusters=n_cohort)
+    cohort_model = KNeighborsClassifier(n_neighbors=n_neighbors)
+
+    cluster_feats = copy(cohort_feats)
+    cohort_df = df[cohort_feats + ["user_id"]].drop_duplicates()
+
+    camps = np.sort(df["camp_id"].unique()).tolist()
+    df_agg = (
+        df.groupby(["user_id", "camp_id"], observed=True)["response"]
+        .mean()
+        .reset_index()
+    )
+    df_agg["response"] = np.around(df_agg["response"]).astype(int)
+    resp_df = df_agg.pivot(
+        index="user_id", columns="camp_id", values="response"
+    ).reset_index()
+    imputer = KNNImputer(n_neighbors=3)
+    resp_df[camps] = imputer.fit_transform(resp_df[camps])
+    cohort_df = cohort_df.merge(resp_df, on="user_id", how="left")
+    cluster_feats += camps
+
+    cohort_df["cohort"] = cluster_model.fit_predict(
+        cohort_df[cluster_feats].values
+    )
+    cohort_model.fit(cohort_df[cohort_feats].values, cohort_df["cohort"].values)
+    df["cohort"] = pd.Categorical(
+        cohort_df.set_index("user_id").loc[df["user_id"]]["cohort"],
+        categories=df["cohort"].values.categories,
+    )
+
+    df = df[["user_id", "cohort"]].drop_duplicates(subset=["user_id"]).rename(
+        columns={"cohort": "cohort_response_cluster"})
+
+    return df

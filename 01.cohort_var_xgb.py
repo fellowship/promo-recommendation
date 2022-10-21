@@ -56,6 +56,7 @@ for cvar, fh, itrain in tqdm(
     )
     model = XGBClassifier(n_estimators=PARAM_NROUND, **PARAM_XGB)
     score = cross_validate(model, data[feat_cols], data["response"])["test_score"]
+
     score = pd.DataFrame(
         {
             "cohort_variance": cvar,
