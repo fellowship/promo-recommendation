@@ -19,14 +19,14 @@ from routine.training import cv_by_id
 
 PARAM_DATA = {
     "num_users": 1000,
-    "num_campaigns": 50,
+    "num_campaigns": 80,
     "samples_per_campaign": 1000,
-    "num_cohort": 40,
+    "num_cohort": 10,
     "fh_cohort": True,
     "even_cohort": True,
     "response_sig_a": 10,
     "cross_weight": None,
-    "magnify_hf": 2,
+    "magnify_hf": 1,
     "perfect_camp": True,
 }
 PARAM_XGB = {
@@ -37,8 +37,8 @@ PARAM_XGB = {
     "use_label_encoder": False,
 }
 PARAM_NROUND = 30
-PARAM_VAR_F = np.linspace(0.1, 0.9, 3)
-PARAM_VAR_FH = np.linspace(0.1, 0.9, 3)
+PARAM_VAR_F = np.linspace(0.1, 0.9, 9)
+PARAM_VAR_FH = np.linspace(0.1, 0.9, 9)
 PARAM_MAP = {
     "raw response": {
         "feats": ["user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
