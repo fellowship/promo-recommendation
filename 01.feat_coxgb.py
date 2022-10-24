@@ -19,14 +19,14 @@ from routine.training import cv_by_id
 
 PARAM_DATA = {
     "num_users": 1000,
-    "num_campaigns": 10,
+    "num_campaigns": 80,
     "samples_per_campaign": 1000,
-    "num_cohort": 40,
+    "num_cohort": 10,
     "fh_cohort": True,
     "even_cohort": True,
     "response_sig_a": 10,
     "cross_weight": None,
-    "magnify_hf": 2,
+    "magnify_hf": 1,
     "perfect_camp": True,
 }
 PARAM_XGB = {
@@ -37,7 +37,8 @@ PARAM_XGB = {
     "use_label_encoder": False,
 }
 PARAM_NROUND = 30
-PARAM_VAR = np.linspace(0.1, 0.9, 3)
+PARAM_VAR_F = np.linspace(0.1, 0.9, 9)
+PARAM_VAR_FH = np.linspace(0.1, 0.9, 9)
 PARAM_MAP = {
     "raw response": {
         "feats": ["user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
@@ -47,12 +48,12 @@ PARAM_MAP = {
     "real cohort id": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"]
     },
-    "visible-clustered cohort id": {
-        "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
-        "cohort_feats": ["user_f0", "user_f1"],
-        "user_feats": ["user_f0", "user_f1"],
-        "use_cohort_resp": False,
-    },
+    # "visible-clustered cohort id": {
+    #     "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
+    #     "cohort_feats": ["user_f0", "user_f1"],
+    #     "user_feats": ["user_f0", "user_f1"],
+    #     "use_cohort_resp": False,
+    # },
     "response-clustered cohort id": {
         "feats": ["cohort", "user_f0", "user_f1", "camp_f0", "camp_f1", "camp_fh"],
         "cohort_feats": ["user_f0", "user_f1"],
@@ -69,18 +70,27 @@ PARAM_MAP = {
 PARAM_NTRAIN = 10
 PARAM_FONT_SZ = {"font_size": 16, "title_font_size": 24, "legend_title_font_size": 24}
 PARAM_CV = 5
-PARAM_SPLT_BY = ["camp_id", "user_id"]
+PARAM_SPLT_BY = ["camp_id"]
 OUT_RESULT_PATH = "./intermediate/feat_coxgb"
 FIG_PATH = "./figs/feat_coxgb"
 os.makedirs(OUT_RESULT_PATH, exist_ok=True)
 os.makedirs(FIG_PATH, exist_ok=True)
+np.random.seed(42)
 
 #%% training
 result_ls = []
-for cvar, pkey, splt_by, itrain in tqdm(
-    list(itt.product(PARAM_VAR, PARAM_MAP.keys(), PARAM_SPLT_BY, range(PARAM_NTRAIN)))
+for var_f, var_fh, pkey, splt_by, itrain in tqdm(
+    list(
+        itt.product(
+            PARAM_VAR_F,
+            PARAM_VAR_FH,
+            PARAM_MAP.keys(),
+            PARAM_SPLT_BY,
+            range(PARAM_NTRAIN),
+        )
+    )
 ):
-    cohort_var = np.array([cvar, cvar, 0.1])
+    cohort_var = np.array([var_f, var_f, var_fh])
     cur_param_data = PARAM_DATA.copy()
     if pkey == "raw response - double campaign":
         cur_param_data["num_campaigns"] = cur_param_data["num_campaigns"] * 2
@@ -105,7 +115,8 @@ for cvar, pkey, splt_by, itrain in tqdm(
         scores_test[icv] = model.score(data_test)
     score = pd.DataFrame(
         {
-            "cohort_variance": cvar,
+            "var_f": var_f,
+            "var_fh": var_fh,
             "feats": pkey,
             "itrain": itrain,
             "split_by": splt_by,
