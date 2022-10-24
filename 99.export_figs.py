@@ -52,7 +52,7 @@ PARAM_NMAP_MI = {
     "user_f0": "Visible Feature 1",
     "user_f1": "Visible Feature 2",
 }
-PARAM_VAR_SLC = 0.9
+PARAM_VAR_SLC = 0.1
 PARAM_FONT_SZ = {"font_size": 10, "title_font_size": 24, "legend_title_font_size": 24}
 
 
@@ -134,6 +134,7 @@ fig1.update_layout(
     **PARAM_FONT_SZ,
 )
 fig1.write_image(os.path.join(fig_path, "fig1.svg"), scale=5)
+fig1.write_image(os.path.join(fig_path, "fig1.png"), scale=5)
 
 
 #%% fig2
@@ -200,6 +201,7 @@ fig2a.update_layout(
     **PARAM_FONT_SZ,
 )
 fig2a.write_image(os.path.join(fig_path, "fig2a.svg"), scale=5)
+fig2a.write_image(os.path.join(fig_path, "fig2a.png"), scale=5)
 # fig2b
 fig2b = make_subplots(
     rows=2,
@@ -247,10 +249,11 @@ fig2b.update_layout(
     width=800,
     boxmode="group",
     barmode="stack",
-    legend_tracegroupgap=160,
+    legend_tracegroupgap=220,
     **PARAM_FONT_SZ,
 )
 fig2b.write_image(os.path.join(fig_path, "fig2b.svg"), scale=5)
+fig2b.write_image(os.path.join(fig_path, "fig2b.png"), scale=5)
 
 #%% fig3
 # defs
@@ -375,6 +378,7 @@ fig3a.update_layout(
     **PARAM_FONT_SZ,
 )
 fig3a.write_image(os.path.join(fig_path, "fig3a.svg"), scale=5)
+fig3a.write_image(os.path.join(fig_path, "fig3a.png"), scale=5)
 # fig3b
 fig3b = go.Figure()
 for feat, f_df in result_agg.groupby("feats"):
@@ -398,6 +402,7 @@ fig3b.update_layout(
     **PARAM_FONT_SZ,
 )
 fig3b.write_image(os.path.join(fig_path, "fig3b.svg"), scale=5)
+fig3b.write_image(os.path.join(fig_path, "fig3b.png"), scale=5)
 # fig3c
 fig3c = make_subplots(
     rows=2,
@@ -411,7 +416,12 @@ fig3c = make_subplots(
 result_sub = result[
     (result["var_fh"] == PARAM_VAR_SLC)
     & result["feats"].isin(
-        ["visible features", "response-clustered cohort id", "all features"]
+        [
+            "visible features",
+            "real cohort id",
+            "response-clustered cohort id",
+            "all features",
+        ]
     )
 ]
 mi_sub = mi_df[
@@ -447,7 +457,8 @@ fig3c.update_layout(
     width=800,
     boxmode="group",
     barmode="stack",
-    legend_tracegroupgap=160,
+    legend_tracegroupgap=200,
     **PARAM_FONT_SZ,
 )
 fig3c.write_image(os.path.join(fig_path, "fig3c.svg"), scale=5)
+fig3c.write_image(os.path.join(fig_path, "fig3c.png"), scale=5)
