@@ -191,12 +191,11 @@ for feat, f_df in result_agg.groupby("feats"):
     )
     fig2a.add_trace(trace)
 fig2a.update_layout(
-    title="<b>Model Performance Using Cohort ID</b>",
     height=500,
     width=600,
     autosize=False,
     scene=scene_opts,
-    margin={"l": 3, "r": 3, "t": 40, "b": 3},
+    margin={"l": 3, "r": 3, "t": 3, "b": 3},
     legend={"yanchor": "top", "y": 0.5},
     **PARAM_FONT_SZ,
 )
@@ -392,12 +391,11 @@ for feat, f_df in result_agg.groupby("feats"):
     )
     fig3b.add_trace(trace)
 fig3b.update_layout(
-    title="<b>Model Performance Using Predicted Cohort ID</b>",
     height=500,
     width=600,
     autosize=False,
     scene=scene_opts,
-    margin={"l": 3, "r": 3, "t": 40, "b": 3},
+    margin={"l": 3, "r": 3, "t": 3, "b": 3},
     legend={"yanchor": "top", "y": 0.5},
     **PARAM_FONT_SZ,
 )
